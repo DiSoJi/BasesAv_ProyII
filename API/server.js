@@ -50,9 +50,9 @@ var aeropuertoSchema = new mongoose.Schema({
 var funcionarioSchema = new mongoose.Schema({
     cedula:Number,
     nombreCompleto:String,
-    tipo:Number,
+    tipo:String,
     fechaIngreso:Date,
-    areaTrabajo:String,
+    areaTrabajo:Array,
     contrasena:String
 
 }, {
