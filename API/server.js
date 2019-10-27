@@ -103,11 +103,13 @@ var pasajeroSchema = new mongoose.Schema({
 });
 
 var compraSchema = new mongoose.Schema({
+    idPasajero:Number, //Added idPasajero to keep the relation between a buy and the buyer
+    codigoVuelo:String, //Added codigoVuelo to keep the relation between a buy and the buyer
     codigoCompra:String,
     cantidadBoletos:Number,
     cantidadMaletas:Number,
     estado:Array,
-    observaciones:Array
+    observaciones:String
 
 }, {
     versionKey: false // You should be aware of the outcome after set to false
@@ -590,7 +592,13 @@ server.post("/CRUDS/CreateCompra", async (req, res) => {
     mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
-        let newCompra = new Compra(req.body);
+        let compraBody = req.body;
+        let arrayEstado = [];
+        for (i = 0; i < parseInt(req.body['cantidadBoletos']);i++){
+            arrayEstado.push("Comprado")
+        }
+        compraBody['estado'] = arrayEstado;
+        let newCompra = new Compra(compraBody);
         response = await newCompra.save()
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
@@ -616,6 +624,42 @@ server.post("/CRUDS/GetCompra_codigo", async (req, res) => {
     mongoose.disconnect();
     res.send(success)
 });
+
+server.post("/CRUDS/GetCompra_pasajero", async (req, res) => {
+    console.log("Request recieved");
+    let codigo = req.body['idPasajero']
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    let success;
+    try {
+        var response = await Compra.find({idPasajero:codigo}).exec();
+        success = {'Codigo':true,'Contenido':response}
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':error}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
+
+server.post("/CRUDS/GetCompra_pasajeroXvuelo", async (req, res) => {
+    console.log("Request recieved");
+    let codigo = req.body['codigoVuelo']
+    let cedula = req.body['idPasajero']
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    let success;
+    try {
+        var response = await Compra.find({codigoVuelo:codigo,idPasajero:cedula}).exec();
+        success = {'Codigo':true,'Contenido':response}
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':error}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
+
 
 server.get("/CRUDS/GetCompra_todos", async (req, res) => {
     console.log("Request recieved");
@@ -671,23 +715,6 @@ server.post("/CRUDS/DeleteCompra", async (req, res) => {
     res.send(success)
 });
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//Encription for passwords
-//var password = "hellobitches";
-
-//var encrypted = CryptoJS.AES.encrypt(password.toString(), encryptionKey);
-//console.log("EncryptedString");
-//console.log(encrypted.toString());
-// Decrypt
-/*
-var Decryptedbytes  = CryptoJS.AES.decrypt(encrypted.toString(), encryptionKey);
-console.log("Decryptedbytes");
-console.log(Decryptedbytes);
-var DecryptedText = Decryptedbytes.toString(CryptoJS.enc.Utf8);
-console.log("The password is: ");
-console.log(DecryptedText);
-*/
-
 /*---LogIn-----------------------------------------------------------------------------------------*/
 
 server.post("/LOGIN/Funcionario", async (req, res) => {
@@ -749,6 +776,62 @@ server.post("/LOGIN/Pasajero", async (req, res) => {
     mongoose.disconnect();
     res.send(success)
 });
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+/*---Passengers API's---------------------------------------------------------------------------------------*/
+/*
+* Passenger info registration: Already coded in passenger's CRUDS
+* Buy tickets: Already coded in Ticket CRUDS
+* 
+*/
+
+server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. Falta probarlo
+    console.log("Request recieved");
+    let codigo = req.body['codigoVuelo']
+    let cedula = req.body['idPasajer']
+    let numCheck = parseInt(req.body['cantChecked']);
+    let tempCheck = numCheck;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true}); //Usa master por los updates
+    console.log("Connected to mongodb");
+    let success;
+    try {
+        var aero = await Compra.find({codigoVuelo:codigo,idPasajero:cedula}).exec();
+        //console.log(aero)
+        aero = aero[0]
+        let tempArray = aero['estado'];
+        for (i = 0; i < tempArray.length; i++){
+            if (tempArray[i] == "comprado" && numCheck != 0){
+                tempArray[i] = "checkedIn";
+                numCheck--;
+            }
+        }
+        if (numCheck != 0){
+            success = {'Codigo':false,'Contenido':404} //404: no tiene suficientes volestos para la cantidad que esta haciendo check in
+        }else{
+            aero['estado'] = tempArray;
+            //console.log(aero)
+            //capacidadMaxima:Number,
+            //asientosDisponibles:Number
+            let vuelo = await Vuelo.find({codigoVuelo:codigo}).exec();
+            vuelo = vuelo[0];
+            if (parseInt(vuelo['asientosDisponibles']) == 0){
+                success = {'Codigo':false,'Contenido':405} //405: el vuelo no tiene suficientes asientos (seria raro que ocurra)
+            }else{
+                let asientos = parseInt(vuelo['capacidadMaxima']) - parseInt(vuelo['asientosDisponibles']);
+                let asientos2 = asientos + tempCheck;
+                let rangoasientos = asientos.toString + asientos2.toString;
+                var response = await aero.save();
+                var response2 = await vuelo.save();
+                success = {'Codigo':true,'Contenido':rangoasientos}
+            }
+        }
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':error}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
+
 /*
 //Conection and function
 var db = mongoose.connection;
