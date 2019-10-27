@@ -7,6 +7,8 @@ var CryptoJS = require("crypto-js");
 server.use(bodyParser.urlencoded({extended: false}))
 server.use(bodyParser.json());
 
+//Encryption Key. TOP SECRET (that's why it's in source code like a complete madlad :V)
+var encryptionKey = 'AMelodyThatUneasesTheWellOfTheSoul';
 
 //CORS Middleware
 server.use(function (req, res, next) {
@@ -23,9 +25,16 @@ server.use(function (req, res, next) {
 
 
  var mongoose = require('mongoose');
- mongoose.connect('mongodb://localhost/test', {useNewUrlParser: true}); //Change this line to set conection string
+ //mongoose.connect('mongodb://localhost/test', {useNewUrlParser: true}); //Change this line to set conection string
  
-//Esquemas para documentos//////////////////////////////////////////////////////////////////////////
+ var masterdb = 'mongodb://localhost/test' //Remember to change this for an extraction from a file, changed with docker.
+ var slavedb = 'mongodb://localhost/mongoide' //Remember to change this for an extraction from a file, changed with docker.
+ 
+ 
+ //mongoide.connect('mongodb://localhost/mongoide', {useNewUrlParser: true}); //Change this line to set conection string
+
+
+ //Esquemas para documentos//////////////////////////////////////////////////////////////////////////
 /*Esquemas de Administrador*/
 var aeropuertoSchema = new mongoose.Schema({
     codigoAeropuerto:String,
@@ -43,8 +52,8 @@ var funcionarioSchema = new mongoose.Schema({
     nombreCompleto:String,
     tipo:Number,
     fechaIngreso:Date,
-    areTrabajo:String,
-    contraseña:String
+    areaTrabajo:String,
+    contrasena:String
 
 }, {
     versionKey: false // You should be aware of the outcome after set to false
@@ -87,7 +96,7 @@ var pasajeroSchema = new mongoose.Schema({
     lugarResidencia:String,
     telefono:Number,
     correo:String,
-    contraseña:String
+    contrasena:String
 
 }, {
     versionKey: false // You should be aware of the outcome after set to false
@@ -124,7 +133,8 @@ var Compra = mongoose.model('Compra', compraSchema);
 server.post("/CRUDS/CreateAeropuerto", async (req, res) => {
     console.log("Request recieved");
     let success;
-    var db = mongoose.connection;
+    //var db = mongoide.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
         let newAeropuerto = new Aeropuerto(req.body);
@@ -133,13 +143,14 @@ server.post("/CRUDS/CreateAeropuerto", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/GetAeropuerto_codigo", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['codigoAeropuerto']
-    var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -148,13 +159,15 @@ server.post("/CRUDS/GetAeropuerto_codigo", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.get("/CRUDS/GetAeropuerto_todos", async (req, res) => {
     console.log("Request recieved");
-    var db = mongoose.connection;
-    console.log("Connected to mongodb");
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
+    console.log("Connected to mongodb aero_todos");
     let success;
     try {
         var response = await Aeropuerto.find().exec();
@@ -162,13 +175,15 @@ server.get("/CRUDS/GetAeropuerto_todos", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/UpdateAeropuerto", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['codigoAeropuerto']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -181,13 +196,15 @@ server.post("/CRUDS/UpdateAeropuerto", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/DeleteAeropuerto", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['codigoAeropuerto']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -196,6 +213,7 @@ server.post("/CRUDS/DeleteAeropuerto", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
@@ -204,22 +222,27 @@ server.post("/CRUDS/DeleteAeropuerto", async (req, res) => {
 server.post("/CRUDS/CreateFuncionario", async (req, res) => {
     console.log("Request recieved");
     let success;
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
-        let newFuncionario = new Funcionario(req.body);
+        let tempBody = req.body;
+        tempBody['contrasena'] = CryptoJS.AES.encrypt(tempBody['contrasena'].toString(), encryptionKey);
+        let newFuncionario = new Funcionario(tempBody);
         response = await newFuncionario.save()
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/GetFuncionario_cedula", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['cedula']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -228,12 +251,14 @@ server.post("/CRUDS/GetFuncionario_cedula", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.get("/CRUDS/GetFuncionario_todos", async (req, res) => {
     console.log("Request recieved");
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -242,13 +267,15 @@ server.get("/CRUDS/GetFuncionario_todos", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/UpdateFuncionario", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['cedula']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -261,13 +288,15 @@ server.post("/CRUDS/UpdateFuncionario", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/DeleteFuncionario", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['cedula']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -276,6 +305,7 @@ server.post("/CRUDS/DeleteFuncionario", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -284,7 +314,8 @@ server.post("/CRUDS/DeleteFuncionario", async (req, res) => {
 server.post("/CRUDS/CreateAerolinea", async (req, res) => {
     console.log("Request recieved");
     let success;
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
         let newAerolinea = new Aerolinea(req.body);
@@ -293,13 +324,15 @@ server.post("/CRUDS/CreateAerolinea", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/GetAerolinea_id", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['id']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -308,12 +341,14 @@ server.post("/CRUDS/GetAerolinea_id", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.get("/CRUDS/GetAerolinea_todos", async (req, res) => {
     console.log("Request recieved");
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -322,13 +357,15 @@ server.get("/CRUDS/GetAerolinea_todos", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/UpdateAerolinea", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['id']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -341,13 +378,15 @@ server.post("/CRUDS/UpdateAerolinea", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/DeleteAerolinea", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['id']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -356,6 +395,7 @@ server.post("/CRUDS/DeleteAerolinea", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -364,7 +404,8 @@ server.post("/CRUDS/DeleteAerolinea", async (req, res) => {
 server.post("/CRUDS/CreateVuelo", async (req, res) => {
     console.log("Request recieved");
     let success;
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
         let newVuelo = new Vuelo(req.body);
@@ -373,13 +414,15 @@ server.post("/CRUDS/CreateVuelo", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/GetVuelo_codigo", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['codigoVuelo']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -388,12 +431,14 @@ server.post("/CRUDS/GetVuelo_codigo", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.get("/CRUDS/GetVuelo_todos", async (req, res) => {
     console.log("Request recieved");
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -402,13 +447,15 @@ server.get("/CRUDS/GetVuelo_todos", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/UpdateVuelo", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['codigoVuelo']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -421,13 +468,15 @@ server.post("/CRUDS/UpdateVuelo", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/DeleteVuelo", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['codigoVuelo']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -436,6 +485,7 @@ server.post("/CRUDS/DeleteVuelo", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -444,22 +494,27 @@ server.post("/CRUDS/DeleteVuelo", async (req, res) => {
 server.post("/CRUDS/CreatePasajero", async (req, res) => {
     console.log("Request recieved");
     let success;
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
-        let newPasajero = new Pasajero(req.body);
+        let tempBody = req.body;
+        tempBody['contrasena'] = CryptoJS.AES.encrypt(tempBody['contrasena'].toString(), encryptionKey);
+        let newPasajero = new Pasajero(tempBody);
         response = await newPasajero.save()
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/GetPasajero_cedula", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['cedula']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -468,12 +523,14 @@ server.post("/CRUDS/GetPasajero_cedula", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.get("/CRUDS/GetPasajero_todos", async (req, res) => {
     console.log("Request recieved");
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -482,13 +539,15 @@ server.get("/CRUDS/GetPasajero_todos", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/UpdatePasajero", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['cedula']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -501,13 +560,15 @@ server.post("/CRUDS/UpdatePasajero", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/DeletePasajero", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['cedula']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -516,6 +577,7 @@ server.post("/CRUDS/DeletePasajero", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -524,7 +586,8 @@ server.post("/CRUDS/DeletePasajero", async (req, res) => {
 server.post("/CRUDS/CreateCompra", async (req, res) => {
     console.log("Request recieved");
     let success;
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
         let newCompra = new Compra(req.body);
@@ -533,13 +596,15 @@ server.post("/CRUDS/CreateCompra", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/GetCompra_codigo", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['codigoCompra']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -548,12 +613,14 @@ server.post("/CRUDS/GetCompra_codigo", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.get("/CRUDS/GetCompra_todos", async (req, res) => {
     console.log("Request recieved");
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -562,13 +629,15 @@ server.get("/CRUDS/GetCompra_todos", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/UpdateCompra", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['codigoCompra']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -581,13 +650,15 @@ server.post("/CRUDS/UpdateCompra", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 
 server.post("/CRUDS/DeleteCompra", async (req, res) => {
     console.log("Request recieved");
     let codigo = req.body['codigoCompra']
-    var db = mongoose.connection;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     let success;
     try {
@@ -596,11 +667,88 @@ server.post("/CRUDS/DeleteCompra", async (req, res) => {
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
+    mongoose.disconnect();
     res.send(success)
 });
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//Encription for passwords
+//var password = "hellobitches";
 
+//var encrypted = CryptoJS.AES.encrypt(password.toString(), encryptionKey);
+//console.log("EncryptedString");
+//console.log(encrypted.toString());
+// Decrypt
+/*
+var Decryptedbytes  = CryptoJS.AES.decrypt(encrypted.toString(), encryptionKey);
+console.log("Decryptedbytes");
+console.log(Decryptedbytes);
+var DecryptedText = Decryptedbytes.toString(CryptoJS.enc.Utf8);
+console.log("The password is: ");
+console.log(DecryptedText);
+*/
+
+/*---LogIn-----------------------------------------------------------------------------------------*/
+
+server.post("/LOGIN/Funcionario", async (req, res) => {
+    console.log("Request recieved");
+    let success;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    try {
+        let user = req.body['cedula']
+        let pass = req.body['contrasena']
+        //let newCompra = new Compra(req.body);
+        let userResp = await Funcionario.find({'cedula':user}).exec();
+        if (userResp == ""){
+            console.log("No resp");
+            success = {'Codigo':false,'Contenido':'404u'}
+        } else {
+            let Decryptedbytes  = CryptoJS.AES.decrypt(userResp[0]['contrasena'].toString(), encryptionKey);
+            let DecryptedPass = Decryptedbytes.toString(CryptoJS.enc.Utf8);
+            if (DecryptedPass != pass){
+                success = {'Codigo':false,'Contenido':'404c'}
+            }else{
+                success = {'Codigo':true,'Contenido':'200'}
+            }
+        }
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':"error"}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
+
+server.post("/LOGIN/Pasajero", async (req, res) => {
+    console.log("Request recieved");
+    let success;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    try {
+        let user = req.body['cedula']
+        let pass = req.body['contrasena']
+        //let newCompra = new Compra(req.body);
+        let userResp = await Pasajero.find({'cedula':user}).exec();
+        if (userResp == ""){
+            console.log("No resp");
+            success = {'Codigo':false,'Contenido':'404u'}
+        } else {
+            let Decryptedbytes  = CryptoJS.AES.decrypt(userResp[0]['contrasena'].toString(), encryptionKey);
+            let DecryptedPass = Decryptedbytes.toString(CryptoJS.enc.Utf8);
+            if (DecryptedPass != pass){
+                success = {'Codigo':false,'Contenido':'404c'}
+            }else{
+                success = {'Codigo':true,'Contenido':'200'}
+            }
+        }
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':"error"}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
 /*
 //Conection and function
 var db = mongoose.connection;
@@ -632,15 +780,9 @@ Kitten.find({ name: /^fluff/ }, callback);
 
 */
 
-/**    //Encription for passwords
-// Decrypt
-var bytes  = CryptoJS.AES.decrypt(pass.toString(), 'zWqhtuy567lKhtgf3');
-var plaintext = bytes.toString(CryptoJS.enc.Utf8);
-console.log(plaintext);
-**/
 
 
- server.listen(process.env.PORT || 8080, () => {
+ server.listen(process.env.PORT || port, () => {
     //var port = server.address().port;
-    console.log("App now running on port",8080);
+    console.log("Server listening on port",port);
  });
