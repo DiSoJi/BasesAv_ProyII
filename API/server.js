@@ -655,18 +655,41 @@ server.post("/CRUDS/CreateCompra", async (req, res) => {
     mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
+        var isThereCompra = await Compra.find({'idPasajero':req.body['idPasajero'],'codigoVuelo':req.body['codigoVuelo']}).exec();
+        console.log(isThereCompra);
+        //aero = aero[0].set(req.body);
+        //console.log(aero)
+        //var response = await aero.save();
+        let tempTickets = req.body['cantidadBoletos'];
+        let arrayEstado = [];
+        let arrayAsientos = [];
         let entropy = new Entropy()
         let string = entropy.string()
         req.body['codigoCompra'] = string;
+
+        if (isThereCompra != ""){
+            compra = isThereCompra[0];
+            req.body['cantidadBoletos'] = parseInt(compra['cantidadBoletos']) + parseInt(req.body['cantidadBolestos']);
+            arrayAsientos = compra['asientos'];
+            arrayEstado = compra['estado'];
+            req.body['codigoCompra'] = compra['codigoCompra'];
+        }
         let compraBody = req.body;
-        let arrayEstado = [];
-        for (i = 0; i < parseInt(req.body['cantidadBoletos']);i++){
-            arrayEstado.push("Comprado")
+        for (i = 0; i < parseInt(tempTickets);i++){
+            arrayEstado.push("Comprado");
+            arrayAsientos.push(0);
         }
         compraBody['estado'] = arrayEstado;
-        let newCompra = new Compra(compraBody);
-        response = await newCompra.save()
+        compraBody['asientos'] = arrayAsientos;
+        if (isThereCompra == ""){
+            let newCompra = new Compra(compraBody);
+            response = await newCompra.save();
+        }else{
+            compra = compra.set(req.body);
+            response = await compra.save();
+        }
         success = {'Codigo':true,'Contenido':response}
+        
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
     }
@@ -853,7 +876,7 @@ server.post("/LOGIN/Pasajero", async (req, res) => {
 server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. Falta probarlo
     console.log("Request received");
     let codigo = req.body['codigoVuelo']
-    let cedula = req.body['idPasajer']
+    let cedula = req.body['idPasajero']
     let numCheck = parseInt(req.body['cantChecked']);
     let tempCheck = numCheck;
     //var db = mongoose.connection;
@@ -861,12 +884,12 @@ server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. F
     console.log("Connected to mongodb");
     let success;
     try {
-        var aero = await Compra.find({codigoVuelo:codigo,idPasajero:cedula}).exec();
+        var aero = await Compra.find({'codigoVuelo':codigo,'idPasajero':cedula}).exec();
         //console.log(aero)
         aero = aero[0]
         let tempArray = aero['estado'];
-        let tempAsientos = Array(tempArray.length);
-        let vuelo = await Vuelo.find({codigoVuelo:codigo}).exec();
+        let tempAsientos = aero['asientos'];
+        let vuelo = await Vuelo.find({'codigoVuelo':codigo}).exec();
         vuelo = vuelo[0];
         let asientosDisponibles = parseInt(vuelo['asientosDisponibles']);
         let capacidadMaxima = parseInt(vuelo['capacidadMaxima']);
@@ -876,7 +899,7 @@ server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. F
             let numAsientos = capacidadMaxima - asientosDisponibles;
             for (i = 0; i < tempArray.length; i++){
                 if (tempArray[i] == "Bought" && numCheck != 0){
-                    tempAsientos[i] = ++numAsientos
+                    tempAsientos[i] = ++numAsientos;
                     tempArray[i] = "checkedIn";
                     numCheck--;
                 }
@@ -889,7 +912,7 @@ server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. F
                 vuelo['asientosDisponibles'] = asientosDisponibles - tempCheck;
                 var response = await aero.save();
                 var response2 = await vuelo.save();
-                success = {'Codigo':true,'Contenido':200}  //200: exito
+                success = {'Codigo':true,'Contenido':tempAsientos}  //Devuelve el array con los asientos
             }
         }
     } catch (error) {
@@ -926,7 +949,6 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
                 let vuelo = vueloArray[j];
                 tempVuelo = await Vuelo.find({'codigoVuelo':vuelo}).exec();
                 vueloJsonArray.push(tempVuelo[0]);
-                console.log(vueloJsonArray);
             }
             vueloArray = [];
             for (k=0;k<vueloJsonArray.length;k++){
@@ -1052,9 +1074,44 @@ server.post("/Administrador/Pasajero_RangoBoletos", async (req, res) => {
     res.send(success)
 });
 
+/*
+¿Cuáles son las destinos más visitados? 
+Se debe mostrar el nombre de cada destino
+y la cantidad de pasajero que han comprado vuelos para esedestino.
+*/
 
-
-
+server.post("/Administrador/DestinosMasVisitados", async (req, res) => {
+    console.log("Request received");
+    let success;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    try {
+        let allVuelos = await Vuelo.find().exec();
+        let destinos = [];
+        for (i=0;i<allVuelos.length;i++){
+            let vuelo = allVuelos[i]
+            let destinoIndex = destinos.indexOf(vuelo['destino']);
+            if ( destinoIndex == -1){
+                destinos.push(vuelo['destino']);
+            }
+            /*
+            *POR TERMINAR: Se obtienen todos los vuelos, extraer los destinos sin repetir meterlos en lista destinos
+            * Extraer el indice del destino del vuelo actual (linea de codigo siguiente)
+            * Extraer las compras para este vuelo. La cantidad de compras es tambien la cantidad de pasajeros
+            * Sumar la cantidad de tickets
+            * Relacionar estos datos con el destino de alguna forma (utilizando el indice talvez?)
+            */
+            destinoIndex = destinos.indexOf(vuelo['destino']);
+            let compras = await Compra.find({'codigoVuelo':vuelo['codigoVuelo']});
+        }
+        success = {'Codigo':true,'Pasajeros':pasajeros,'Rangos':finalRangos}
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':"error"}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
 
 
  server.listen(process.env.PORT || port, () => {
