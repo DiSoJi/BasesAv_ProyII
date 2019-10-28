@@ -70,6 +70,7 @@ var aerolineaSchema = new mongoose.Schema({
 
 var vueloSchema = new mongoose.Schema({
     codigoVuelo:String,
+    fechaVuelo:Date,
     nombre:String,
     origen:String,
     destino:String,
@@ -435,6 +436,12 @@ server.post("/CRUDS/GetVuelo_codigo", async (req, res) => {
     mongoose.disconnect();
     res.send(success)
 });
+
+//todo esto en un solo API
+//GetVuelo x rango de fechas //Si el mae pone Any entonces minDate = 2000 y maxDate = 2030
+//Get Vuelo x origen y destino  //Si elige any yo hago if-else
+
+
 
 server.get("/CRUDS/GetVuelo_todos", async (req, res) => {
     console.log("Request recieved");
@@ -830,6 +837,57 @@ server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. F
     mongoose.disconnect();
     res.send(success)
 });
+
+server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
+    console.log("Request recieved");
+    //Valores necesarios en el body
+    let idpasa = req.body['cedula']; //Para ubicar los vuelos
+    let minDate = req.body['minDate']; //Limite inferior del rango de fechas
+    let maxDate = req.body['maxDate']; //Limite superior del rango de fechas
+    let estado = req.body['estado']; //Estado del vuelo
+    let success;
+    //var db = mongoose.connection;
+    mongoose.connect(masterdb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    try {
+        //let newCompra = new Compra(req.body);
+        let userResp = await Compra.find({'cedula':idpasa}).exec();
+        if (userResp == ""){
+            success = {'Codigo':false,'Contenido':'404v'} //No tiene vuelos asociados
+        } else {
+            let vueloArray = [];
+            let vueloJsonArray = [];
+            userResp.forEach(function(comp){
+                vueloArray.push(comp['codigoVuelo']);
+            });
+            let tempVuelo;
+            vueloArray.forEach(function(vuelo){
+                tempVuelo = await Vuelo.find({'codigoVuelo':vuelo}).exec();
+                vueloJsonArray.push(tempVuelo);
+            });
+            vueloArray = [];
+            vueloJsonArray.forEach(function(vuelojs){
+                let fechaVuelo = vuelojs['fechaVuelo']
+                if (fechaVuelo >= minDate && fechaVuelo <= maxDate){
+                    if (estado == "Any"){
+                        vueloArray.push(vuelojs);
+                    }else{
+                        if (vuelojs['estado'] == estado){
+                            vueloArray.push(vuelojs);
+                        }
+                    }
+
+                }
+            });
+            success = {'Codigo':true,'Contenido':vueloArray} //No tiene vuelos asociados
+        }
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':"error"}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
+
 
 /*
 //Conection and function
