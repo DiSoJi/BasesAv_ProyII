@@ -899,8 +899,8 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
     console.log("Request received");
     //Valores necesarios en el body
     let idpasa = req.body['cedula']; //Para ubicar los vuelos
-    let minDate = Date(req.body['minDate']); //Limite inferior del rango de fechas
-    let maxDate = Date(req.body['maxDate']); //Limite superior del rango de fechas
+    let minDate = new Date(req.body['minDate']); //Limite inferior del rango de fechas
+    let maxDate = new Date(req.body['maxDate']); //Limite superior del rango de fechas
     let estado = req.body['estado']; //Estado del vuelo
     let success;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -925,7 +925,7 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
             });
             vueloArray = [];
             vueloJsonArray.forEach(function(vuelojs){
-                let fechaVuelo = Date(vuelojs['fechaVuelo'])
+                let fechaVuelo = new Date(vuelojs['fechaVuelo'])
                 if (fechaVuelo >= minDate && fechaVuelo <= maxDate){
                     if (estado == "Any"){
                         vueloArray.push(vuelojs);
