@@ -910,10 +910,11 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
     mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
-        let userResp = await Compra.find({'cedula':idpasa}).exec();
+        let userResp = await Compra.find({'idPasajero':idpasa}).exec();
         if (userResp == ""){
             success = {'Codigo':false,'Contenido':'404v'} //No tiene vuelos asociados
         } else {
+            
             let vueloArray = [];
             let vueloJsonArray = [];
             for (i=0;i<userResp.length;i++){
@@ -922,9 +923,10 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
             }
             let tempVuelo;
             for (j=0;j<vueloArray.length;j++){
-                let vuelo = vueloArray[i];
+                let vuelo = vueloArray[j];
                 tempVuelo = await Vuelo.find({'codigoVuelo':vuelo}).exec();
-                vueloJsonArray.push(tempVuelo);
+                vueloJsonArray.push(tempVuelo[0]);
+                console.log(vueloJsonArray);
             }
             vueloArray = [];
             for (k=0;k<vueloJsonArray.length;k++){
