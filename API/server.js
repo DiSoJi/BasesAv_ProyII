@@ -70,6 +70,7 @@ var aerolineaSchema = new mongoose.Schema({
 
 var vueloSchema = new mongoose.Schema({
     codigoVuelo:String,
+    codigoAerolinea:String,
     fechaVuelo:Date,
     nombre:String,
     origen:String,
@@ -445,8 +446,8 @@ server.post("/CRUDS/GetVuelo_codigo", async (req, res) => {
 server.post("/CRUDS/GetVuelo_fechasxlugares", async (req, res) => {
     console.log("Request received");
     //let codigo = req.body['codigoVuelo']
-    let minDate = Date(req.body['minDate']);
-    let maxDate = Date(req.body['maxDate']);
+    let minDate = new Date(req.body['minDate']);
+    let maxDate = new Date(req.body['maxDate']);
     let origen = req.body['origen'];
     let destino = req.body['destino'];
     //var db = mongoose.connection;
@@ -459,12 +460,12 @@ server.post("/CRUDS/GetVuelo_fechasxlugares", async (req, res) => {
         let vuelosIn = [];
         vueloArray.forEach(function(vuelo){
             //console.log(vuelo);
-            let vueloDate = Date(vuelo['fechaVuelo']);
+            let vueloDate = new Date(vuelo['fechaVuelo']);
             let vueloDestino = vuelo['destino'];
             let vueloOrigen = vuelo['origen'];
-            //console.log(vueloDate);
-            //console.log(vueloDestino);
-            //console.log(vueloOrigen);
+            console.log(vueloDate);
+            console.log(minDate);
+            console.log(maxDate);
             if (vueloDate <= maxDate && vueloDate >= minDate){
                 console.log("Dentro del rango de fechas");
                 if (origen == "Any"){
@@ -948,11 +949,11 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
 /*---Administrador APIs---------------------------------------------------------------------------------------*/
 
 /*
-Para todas las aerolíneasdebe mostrar todos los vuelos
+Para todas las aerolíneas debe mostrar todos los vuelos
 junto con la  cantidad  de  boletos  vendidos  en  cada  
 uno y el monto total correspondiente a los boletos vendidos.
 */
-/*
+
 server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, res) => {
     console.log("Request received");
     let success;
@@ -967,7 +968,7 @@ server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, 
     mongoose.disconnect();
     res.send(success)
 });
-*/
+
 
 /*
 //Conection and function
