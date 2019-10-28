@@ -28,7 +28,7 @@ server.use(function (req, res, next) {
  //mongoose.connect('mongodb://localhost/test', {useNewUrlParser: true}); //Change this line to set conection string
  
  var masterdb = 'mongodb://localhost/test' //Remember to change this for an extraction from a file, changed with docker.
- var slavedb = 'mongodb://localhost/mongoide' //Remember to change this for an extraction from a file, changed with docker.
+ var slavedb = 'mongodb://localhost/test' //Remember to change this for an extraction from a file, changed with docker.
  
  
  //mongoide.connect('mongodb://localhost/mongoide', {useNewUrlParser: true}); //Change this line to set conection string
@@ -133,7 +133,7 @@ var Compra = mongoose.model('Compra', compraSchema);
 
 /*CRUDS Aeropuertos*///----------------------------------------------------------------------------------
 server.post("/CRUDS/CreateAeropuerto", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let success;
     //var db = mongoide.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -150,7 +150,7 @@ server.post("/CRUDS/CreateAeropuerto", async (req, res) => {
 });
 
 server.post("/CRUDS/GetAeropuerto_codigo", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['codigoAeropuerto']
     mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
@@ -166,7 +166,7 @@ server.post("/CRUDS/GetAeropuerto_codigo", async (req, res) => {
 });
 
 server.get("/CRUDS/GetAeropuerto_todos", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     //var db = mongoose.connection;
     mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb aero_todos");
@@ -182,7 +182,7 @@ server.get("/CRUDS/GetAeropuerto_todos", async (req, res) => {
 });
 
 server.post("/CRUDS/UpdateAeropuerto", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['codigoAeropuerto']
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -203,7 +203,7 @@ server.post("/CRUDS/UpdateAeropuerto", async (req, res) => {
 });
 
 server.post("/CRUDS/DeleteAeropuerto", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['codigoAeropuerto']
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -222,7 +222,7 @@ server.post("/CRUDS/DeleteAeropuerto", async (req, res) => {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 /*CRUDS Funcionarios*///----------------------------------------------------------------------------------
 server.post("/CRUDS/CreateFuncionario", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let success;
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -241,7 +241,7 @@ server.post("/CRUDS/CreateFuncionario", async (req, res) => {
 });
 
 server.post("/CRUDS/GetFuncionario_cedula", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['cedula']
     //var db = mongoose.connection;
     mongoose.connect(slavedb, {useNewUrlParser: true});
@@ -258,7 +258,7 @@ server.post("/CRUDS/GetFuncionario_cedula", async (req, res) => {
 });
 
 server.get("/CRUDS/GetFuncionario_todos", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     //var db = mongoose.connection;
     mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
@@ -274,7 +274,7 @@ server.get("/CRUDS/GetFuncionario_todos", async (req, res) => {
 });
 
 server.post("/CRUDS/UpdateFuncionario", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['cedula']
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -295,7 +295,7 @@ server.post("/CRUDS/UpdateFuncionario", async (req, res) => {
 });
 
 server.post("/CRUDS/DeleteFuncionario", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['cedula']
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -314,7 +314,7 @@ server.post("/CRUDS/DeleteFuncionario", async (req, res) => {
 
 /*CRUDS Aerolineas*///----------------------------------------------------------------------------------
 server.post("/CRUDS/CreateAerolinea", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let success;
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -331,7 +331,7 @@ server.post("/CRUDS/CreateAerolinea", async (req, res) => {
 });
 
 server.post("/CRUDS/GetAerolinea_id", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['id']
     //var db = mongoose.connection;
     mongoose.connect(slavedb, {useNewUrlParser: true});
@@ -348,7 +348,7 @@ server.post("/CRUDS/GetAerolinea_id", async (req, res) => {
 });
 
 server.get("/CRUDS/GetAerolinea_todos", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     //var db = mongoose.connection;
     mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
@@ -364,7 +364,7 @@ server.get("/CRUDS/GetAerolinea_todos", async (req, res) => {
 });
 
 server.post("/CRUDS/UpdateAerolinea", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['id']
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -385,7 +385,7 @@ server.post("/CRUDS/UpdateAerolinea", async (req, res) => {
 });
 
 server.post("/CRUDS/DeleteAerolinea", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['id']
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -404,7 +404,7 @@ server.post("/CRUDS/DeleteAerolinea", async (req, res) => {
 
 /*CRUDS Vuelo*///----------------------------------------------------------------------------------
 server.post("/CRUDS/CreateVuelo", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let success;
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -421,7 +421,7 @@ server.post("/CRUDS/CreateVuelo", async (req, res) => {
 });
 
 server.post("/CRUDS/GetVuelo_codigo", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['codigoVuelo']
     //var db = mongoose.connection;
     mongoose.connect(slavedb, {useNewUrlParser: true});
@@ -437,6 +437,7 @@ server.post("/CRUDS/GetVuelo_codigo", async (req, res) => {
     res.send(success)
 });
 
+
 //todo esto en un solo API
 //GetVuelo x rango de fechas //Si el mae pone Any entonces minDate = 2000 y maxDate = 2030
 //Get Vuelo x origen y destino  //Si elige any yo hago if-else
@@ -444,7 +445,7 @@ server.post("/CRUDS/GetVuelo_codigo", async (req, res) => {
 
 
 server.get("/CRUDS/GetVuelo_todos", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     //var db = mongoose.connection;
     mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
@@ -460,7 +461,7 @@ server.get("/CRUDS/GetVuelo_todos", async (req, res) => {
 });
 
 server.post("/CRUDS/UpdateVuelo", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['codigoVuelo']
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -481,7 +482,7 @@ server.post("/CRUDS/UpdateVuelo", async (req, res) => {
 });
 
 server.post("/CRUDS/DeleteVuelo", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['codigoVuelo']
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -500,7 +501,7 @@ server.post("/CRUDS/DeleteVuelo", async (req, res) => {
 
 /*CRUDS Pasajero*///----------------------------------------------------------------------------------
 server.post("/CRUDS/CreatePasajero", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let success;
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -519,7 +520,7 @@ server.post("/CRUDS/CreatePasajero", async (req, res) => {
 });
 
 server.post("/CRUDS/GetPasajero_cedula", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['cedula']
     //var db = mongoose.connection;
     mongoose.connect(slavedb, {useNewUrlParser: true});
@@ -536,7 +537,7 @@ server.post("/CRUDS/GetPasajero_cedula", async (req, res) => {
 });
 
 server.get("/CRUDS/GetPasajero_todos", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     //var db = mongoose.connection;
     mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
@@ -552,7 +553,7 @@ server.get("/CRUDS/GetPasajero_todos", async (req, res) => {
 });
 
 server.post("/CRUDS/UpdatePasajero", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['cedula']
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -573,7 +574,7 @@ server.post("/CRUDS/UpdatePasajero", async (req, res) => {
 });
 
 server.post("/CRUDS/DeletePasajero", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['cedula']
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -592,7 +593,7 @@ server.post("/CRUDS/DeletePasajero", async (req, res) => {
 
 /*CRUDS Compra*///----------------------------------------------------------------------------------
 server.post("/CRUDS/CreateCompra", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let success;
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -615,7 +616,7 @@ server.post("/CRUDS/CreateCompra", async (req, res) => {
 });
 
 server.post("/CRUDS/GetCompra_codigo", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['codigoCompra']
     //var db = mongoose.connection;
     mongoose.connect(slavedb, {useNewUrlParser: true});
@@ -632,7 +633,7 @@ server.post("/CRUDS/GetCompra_codigo", async (req, res) => {
 });
 
 server.post("/CRUDS/GetCompra_pasajero", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['idPasajero']
     //var db = mongoose.connection;
     mongoose.connect(slavedb, {useNewUrlParser: true});
@@ -649,7 +650,7 @@ server.post("/CRUDS/GetCompra_pasajero", async (req, res) => {
 });
 
 server.post("/CRUDS/GetCompra_pasajeroXvuelo", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['codigoVuelo']
     let cedula = req.body['idPasajero']
     //var db = mongoose.connection;
@@ -668,7 +669,7 @@ server.post("/CRUDS/GetCompra_pasajeroXvuelo", async (req, res) => {
 
 
 server.get("/CRUDS/GetCompra_todos", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     //var db = mongoose.connection;
     mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
@@ -684,7 +685,7 @@ server.get("/CRUDS/GetCompra_todos", async (req, res) => {
 });
 
 server.post("/CRUDS/UpdateCompra", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['codigoCompra']
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -705,7 +706,7 @@ server.post("/CRUDS/UpdateCompra", async (req, res) => {
 });
 
 server.post("/CRUDS/DeleteCompra", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['codigoCompra']
     //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -724,10 +725,10 @@ server.post("/CRUDS/DeleteCompra", async (req, res) => {
 /*---LogIn-----------------------------------------------------------------------------------------*/
 
 server.post("/LOGIN/Funcionario", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let success;
     //var db = mongoose.connection;
-    mongoose.connect(masterdb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
         let user = req.body['cedula']
@@ -754,10 +755,10 @@ server.post("/LOGIN/Funcionario", async (req, res) => {
 });
 
 server.post("/LOGIN/Pasajero", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     let success;
     //var db = mongoose.connection;
-    mongoose.connect(masterdb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
         let user = req.body['cedula']
@@ -791,7 +792,7 @@ server.post("/LOGIN/Pasajero", async (req, res) => {
 */
 
 server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. Falta probarlo
-    console.log("Request recieved");
+    console.log("Request received");
     let codigo = req.body['codigoVuelo']
     let cedula = req.body['idPasajer']
     let numCheck = parseInt(req.body['cantChecked']);
@@ -839,7 +840,7 @@ server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. F
 });
 
 server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
-    console.log("Request recieved");
+    console.log("Request received");
     //Valores necesarios en el body
     let idpasa = req.body['cedula']; //Para ubicar los vuelos
     let minDate = req.body['minDate']; //Limite inferior del rango de fechas
