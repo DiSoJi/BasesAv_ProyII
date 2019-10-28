@@ -445,8 +445,8 @@ server.post("/CRUDS/GetVuelo_codigo", async (req, res) => {
 server.post("/CRUDS/GetVuelo_fechasxlugares", async (req, res) => {
     console.log("Request received");
     //let codigo = req.body['codigoVuelo']
-    let minDate = req.body['minDate'];
-    let maxDate = req.body['maxDate'];
+    let minDate = Date(req.body['minDate']);
+    let maxDate = Date(req.body['maxDate']);
     let origen = req.body['origen'];
     let destino = req.body['destino'];
     //var db = mongoose.connection;
@@ -455,12 +455,18 @@ server.post("/CRUDS/GetVuelo_fechasxlugares", async (req, res) => {
     let success;
     try {
         var vueloArray = await Vuelo.find().exec();
+        //console.log(vueloArray);
         let vuelosIn = [];
         vueloArray.forEach(function(vuelo){
-            let vueloDate = vuelo['fechaVuelo'];
+            //console.log(vuelo);
+            let vueloDate = Date(vuelo['fechaVuelo']);
             let vueloDestino = vuelo['destino'];
             let vueloOrigen = vuelo['origen'];
+            //console.log(vueloDate);
+            //console.log(vueloDestino);
+            //console.log(vueloOrigen);
             if (vueloDate <= maxDate && vueloDate >= minDate){
+                console.log("Dentro del rango de fechas");
                 if (origen == "Any"){
                     if (destino == "Any"){
                         vuelosIn.push(vuelo);
@@ -475,6 +481,7 @@ server.post("/CRUDS/GetVuelo_fechasxlugares", async (req, res) => {
                             vuelosIn.push(vuelo);
                         }else{
                             if (vueloDestino == destino){
+                                console.log("Detino y Origen coinciden");
                                 vuelosIn.push(vuelo);
                             }
                         }
@@ -891,8 +898,8 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
     console.log("Request received");
     //Valores necesarios en el body
     let idpasa = req.body['cedula']; //Para ubicar los vuelos
-    let minDate = req.body['minDate']; //Limite inferior del rango de fechas
-    let maxDate = req.body['maxDate']; //Limite superior del rango de fechas
+    let minDate = Date(req.body['minDate']); //Limite inferior del rango de fechas
+    let maxDate = Date(req.body['maxDate']); //Limite superior del rango de fechas
     let estado = req.body['estado']; //Estado del vuelo
     let success;
     mongoose.connect(masterdb, {useNewUrlParser: true});
@@ -917,7 +924,7 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
             });
             vueloArray = [];
             vueloJsonArray.forEach(function(vuelojs){
-                let fechaVuelo = vuelojs['fechaVuelo']
+                let fechaVuelo = Date(vuelojs['fechaVuelo'])
                 if (fechaVuelo >= minDate && fechaVuelo <= maxDate){
                     if (estado == "Any"){
                         vueloArray.push(vuelojs);
@@ -937,7 +944,30 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
     mongoose.disconnect();
     res.send(success)
 });
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+/*---Administrador APIs---------------------------------------------------------------------------------------*/
 
+/*
+Para todas las aerolíneasdebe mostrar todos los vuelos
+junto con la  cantidad  de  boletos  vendidos  en  cada  
+uno y el monto total correspondiente a los boletos vendidos.
+*/
+/*
+server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, res) => {
+    console.log("Request received");
+    let success;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    try {
+        
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':"error"}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
+*/
 
 /*
 //Conection and function
