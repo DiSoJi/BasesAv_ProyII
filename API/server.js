@@ -912,19 +912,19 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
         } else {
             let vueloArray = [];
             let vueloJsonArray = [];
-            userResp.forEach(function(comp){
+            for (i=0;i<userResp.length;i++){
+                let comp = userResp[i];
                 vueloArray.push(comp['codigoVuelo']);
-            });
+            }
             let tempVuelo;
-            vueloArray.forEach(async function(vuelo){
+            for (j=0;j<vueloArray.length;j++){
+                let vuelo = vueloArray[i];
                 tempVuelo = await Vuelo.find({'codigoVuelo':vuelo}).exec();
-                //Si no hay await aca podria estarse generando un problema. Que tempVuelo sea metido al array
-                //Sin haber recibido el valor del find.
-                //Ahora, puede que el async agregado genere otro. Comprobar si algo sale mal
                 vueloJsonArray.push(tempVuelo);
-            });
+            }
             vueloArray = [];
-            vueloJsonArray.forEach(function(vuelojs){
+            for (k=0;k<vueloJsonArray.length;k++){
+                let vuelojs = vueloJsonArray[k];
                 let fechaVuelo = new Date(vuelojs['fechaVuelo'])
                 if (fechaVuelo >= minDate && fechaVuelo <= maxDate){
                     if (estado == "Any"){
@@ -936,7 +936,7 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
                     }
 
                 }
-            });
+            }
             success = {'Codigo':true,'Contenido':vueloArray} //No tiene vuelos asociados
         }
     } catch (error) {
@@ -961,7 +961,43 @@ server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, 
     mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
-        
+        let listAerolineas = await Aerolinea.find().exec();
+        let listVuelos = []; //Defintiva (contiene temVuelos x cada aerolinea)
+        let listAeros = [];
+
+        for (i = 0; i< listAerolineas.length;i++){
+            aerolinea = listAerolineas[i];
+            let idAerolinea = aerolinea['id'];
+            console.log(idAerolinea);
+            let tempVuelos = [] //Contiene cada lista de resultados
+            listAeros.push(aerolinea['nombre']);
+            let vuelos = await Vuelo.find({'codigoAerolinea':idAerolinea}).exec();
+            console.log("antes de vuelos.forEach");
+            for (j=0;j< vuelos.length;j++){
+                let vuelo = vuelos[j];
+                console.log("dentro de vuelos.forEach");
+                let tempResults =[]; //contiene los resultados
+                let precioVuelo = parseint(vuelo['precio']);
+                console.log(precioVuelo);
+                tempResults.push(vuelo['codigoVuelo']);
+                console.log("antes de compra.find");
+                let compras = await Compra.find({'codigoVuelo':vuelo['codigoVuelo']}).exec();
+                let tempMoney = 0;
+                let tempCount = 0;
+                for (k=0;k<compras.length;k++){
+                    let compra = compras[k];
+                    let cantBols = parseint(compra['cantidadBoletos']);
+                    console.log(cantBols);
+                    tempMoney = tempMoney + (precioVuelo*cantBols );
+                    tempCount = tempCount + cantBols;
+                }
+                tempResults.push(tempCount);
+                tempResults.push(tempMoney);
+                tempVuelos.push(tempResults);
+            }
+            listVuelos.push(tempVuelos)
+        }
+        success = {'Codigo':true,'Aerolineas':listAeros,'Vuelos':listVuelos}
     } catch (error) {
         success = {'Codigo':false,'Contenido':"error"}
     }
@@ -969,6 +1005,39 @@ server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, 
     res.send(success)
 });
 
+/* Spare code
+        listAerolineas.forEach(async (aerolinea) =>{
+            let idAerolinea = aerolinea['id'];
+            console.log(idAerolinea);
+            let tempVuelos = [] //Contiene cada lista de resultados
+            listAeros.push(aerolinea['nombre']);
+            let vuelos = Vuelo.find({'codigoAerolinea':idAerolinea}).exec();
+            console.log("antes de vuelos.forEach");
+
+            vuelos.forEach(async (vuelo) => {
+                console.log("dentro de vuelos.forEach");
+                let tempResults =[]; //contiene los resultados
+                let precioVuelo = parseint(vuelo['precio']);
+                console.log(precioVuelo);
+                tempResults.push(vuelo['codigoVuelo']);
+                console.log("antes de compra.find");
+                let compras = await Compra.find({'codigoVuelo':vuelo['codigoVuelo']}).exec();
+                let tempMoney = 0;
+                let tempCount = 0;
+
+                compras.forEach(async (compra) =>{
+                    let cantBols = parseint(compra['cantidadBoletos']);
+                    console.log(cantBols);
+                    tempMoney = tempMoney + (precioVuelo*cantBols );
+                    tempCount = tempCount + cantBols;
+                });
+                tempResults.push(tempCount);
+                tempResults.push(tempMoney);
+                tempVuelos.push(tempResults);
+            });
+            listVuelos.push(tempVuelos)
+        });
+*/
 
 /*
 //Conection and function
