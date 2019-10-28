@@ -159,7 +159,7 @@ server.post("/CRUDS/GetAeropuerto_codigo", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Aeropuerto.find({codigoAeropuerto:codigo}).exec();
+        var response = await Aeropuerto.find({'codigoAeropuerto':codigo}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -192,7 +192,7 @@ server.post("/CRUDS/UpdateAeropuerto", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var aero = await Aeropuerto.find({codigoAeropuerto:codigo}).exec();
+        var aero = await Aeropuerto.find({'codigoAeropuerto':codigo}).exec();
         console.log(aero)
         aero = aero[0].set(req.body);
         console.log(aero)
@@ -213,7 +213,7 @@ server.post("/CRUDS/DeleteAeropuerto", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Aeropuerto.deleteOne({codigoAeropuerto:codigo}).exec();
+        var response = await Aeropuerto.deleteOne({'codigoAeropuerto':codigo}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -251,7 +251,7 @@ server.post("/CRUDS/GetFuncionario_cedula", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Funcionario.find({cedula:codigo}).exec();
+        var response = await Funcionario.find({'cedula':codigo}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -284,7 +284,7 @@ server.post("/CRUDS/UpdateFuncionario", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var aero = await Funcionario.find({cedula:codigo}).exec();
+        var aero = await Funcionario.find({'cedula':codigo}).exec();
         console.log(aero)
         aero = aero[0].set(req.body);
         console.log(aero)
@@ -305,7 +305,7 @@ server.post("/CRUDS/DeleteFuncionario", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Funcionario.deleteOne({cedula:codigo}).exec();
+        var response = await Funcionario.deleteOne({'cedula':codigo}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -341,7 +341,7 @@ server.post("/CRUDS/GetAerolinea_id", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Aerolinea.find({id:codigo}).exec();
+        var response = await Aerolinea.find({'id':codigo}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -374,7 +374,7 @@ server.post("/CRUDS/UpdateAerolinea", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var aero = await Aerolinea.find({id:codigo}).exec();
+        var aero = await Aerolinea.find({'id':codigo}).exec();
         console.log(aero)
         aero = aero[0].set(req.body);
         console.log(aero)
@@ -395,7 +395,7 @@ server.post("/CRUDS/DeleteAerolinea", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Aerolinea.deleteOne({id:codigo}).exec();
+        var response = await Aerolinea.deleteOne({'id':codigo}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -431,7 +431,7 @@ server.post("/CRUDS/GetVuelo_codigo", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Vuelo.find({codigoVuelo:codigo}).exec();
+        var response = await Vuelo.find({'codigoVuelo':codigo}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -524,7 +524,7 @@ server.post("/CRUDS/UpdateVuelo", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var aero = await Vuelo.find({codigoVuelo:codigo}).exec();
+        var aero = await Vuelo.find({'codigoVuelo':codigo}).exec();
         console.log(aero)
         aero = aero[0].set(req.body);
         console.log(aero)
@@ -545,7 +545,7 @@ server.post("/CRUDS/DeleteVuelo", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Vuelo.deleteOne({codigoVuelo:codigo}).exec();
+        var response = await Vuelo.deleteOne({'codigoVuelo':codigo}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -583,7 +583,7 @@ server.post("/CRUDS/GetPasajero_cedula", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Pasajero.find({cedula:codigo}).exec();
+        var response = await Pasajero.find({'cedula':codigo}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -616,7 +616,7 @@ server.post("/CRUDS/UpdatePasajero", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var aero = await Pasajero.find({cedula:codigo}).exec();
+        var aero = await Pasajero.find({'cedula':codigo}).exec();
         console.log(aero)
         aero = aero[0].set(req.body);
         console.log(aero)
@@ -637,7 +637,7 @@ server.post("/CRUDS/DeletePasajero", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Pasajero.deleteOne({cedula:codigo}).exec();
+        var response = await Pasajero.deleteOne({'cedula':codigo}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -676,7 +676,7 @@ server.post("/CRUDS/CreateCompra", async (req, res) => {
         }
         let compraBody = req.body;
         for (i = 0; i < parseInt(tempTickets);i++){
-            arrayEstado.push("Comprado");
+            arrayEstado.push("Bought");
             arrayAsientos.push(0);
         }
         compraBody['estado'] = arrayEstado;
@@ -685,7 +685,7 @@ server.post("/CRUDS/CreateCompra", async (req, res) => {
             let newCompra = new Compra(compraBody);
             response = await newCompra.save();
         }else{
-            compra = compra.set(req.body);
+            compra = compra.set(compraBody);
             response = await compra.save();
         }
         success = {'Codigo':true,'Contenido':response}
@@ -705,7 +705,7 @@ server.post("/CRUDS/GetCompra_codigo", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Compra.find({codigoCompra:codigo}).exec();
+        var response = await Compra.find({'codigoCompra':codigo}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -722,7 +722,7 @@ server.post("/CRUDS/GetCompra_pasajero", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Compra.find({idPasajero:codigo}).exec();
+        var response = await Compra.find({'idPasajero':codigo}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -740,7 +740,7 @@ server.post("/CRUDS/GetCompra_pasajeroXvuelo", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Compra.find({codigoVuelo:codigo,idPasajero:cedula}).exec();
+        var response = await Compra.find({'codigoVuelo':codigo,'idPasajero':cedula}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -774,7 +774,7 @@ server.post("/CRUDS/UpdateCompra", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var aero = await Compra.find({codigoCompra:codigo}).exec();
+        var aero = await Compra.find({'codigoCompra':codigo}).exec();
         console.log(aero)
         aero = aero[0].set(req.body);
         console.log(aero)
@@ -795,7 +795,7 @@ server.post("/CRUDS/DeleteCompra", async (req, res) => {
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Compra.deleteOne({codigoCompra:codigo}).exec();
+        var response = await Compra.deleteOne({'codigoCompra':codigo}).exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -907,9 +907,11 @@ server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. F
             if (numCheck != 0){
                 success = {'Codigo':false,'Contenido':404} //404: no tiene suficientes bolestos para la cantidad que esta haciendo check in
             }else{
-                aero['estado'] = tempArray;
-                aero['asientos'] = tempAsientos;
+                let aerobody = aero;
+                aerobody['estado'] = tempArray;
+                aerobody['asientos'] = tempAsientos;
                 vuelo['asientosDisponibles'] = asientosDisponibles - tempCheck;
+                aero = aero.set(aerobody);
                 var response = await aero.save();
                 var response2 = await vuelo.save();
                 success = {'Codigo':true,'Contenido':tempAsientos}  //Devuelve el array con los asientos
