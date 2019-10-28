@@ -853,31 +853,31 @@ server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. F
         //console.log(aero)
         aero = aero[0]
         let tempArray = aero['estado'];
-        for (i = 0; i < tempArray.length; i++){
-            if (tempArray[i] == "Bought" && numCheck != 0){
-                tempArray[i] = "checkedIn";
-                numCheck--;
-            }
-        }
-        if (numCheck != 0){
-            success = {'Codigo':false,'Contenido':404} //404: no tiene suficientes volestos para la cantidad que esta haciendo check in
+        let tempAsientos = Array(tempArray.length);
+        let vuelo = await Vuelo.find({codigoVuelo:codigo}).exec();
+        vuelo = vuelo[0];
+        let asientosDisponibles = parseInt(vuelo['asientosDisponibles']);
+        let capacidadMaxima = parseInt(vuelo['capacidadMaxima']);
+        if (asientosDisponibles == 0){
+            success = {'Codigo':false,'Contenido':405} //405: el vuelo no tiene suficientes asientos (seria raro que ocurra)
         }else{
-            aero['estado'] = tempArray;
-            //console.log(aero)
-            //capacidadMaxima:Number,
-            //asientosDisponibles:Number
-            let vuelo = await Vuelo.find({codigoVuelo:codigo}).exec();
-            vuelo = vuelo[0];
-            if (parseInt(vuelo['asientosDisponibles']) == 0){
-                success = {'Codigo':false,'Contenido':405} //405: el vuelo no tiene suficientes asientos (seria raro que ocurra)
+            let numAsientos = capacidadMaxima - asientosDisponibles;
+            for (i = 0; i < tempArray.length; i++){
+                if (tempArray[i] == "Bought" && numCheck != 0){
+                    tempAsientos[i] = ++numAsientos
+                    tempArray[i] = "checkedIn";
+                    numCheck--;
+                }
+            }
+            if (numCheck != 0){
+                success = {'Codigo':false,'Contenido':404} //404: no tiene suficientes bolestos para la cantidad que esta haciendo check in
             }else{
-                let asientos = parseInt(vuelo['capacidadMaxima']) - parseInt(vuelo['asientosDisponibles']);
-                let asientos2 = asientos + tempCheck;
-                //crear lista con numero de asientos y segun se mete el estado de checkedIn se mete esta a asientos.
-                let rangoasientos = asientos.toString + asientos2.toString;
+                aero['estado'] = tempArray;
+                aero['asientos'] = tempAsientos;
+                vuelo['asientosDisponibles'] = asientosDisponibles - tempCheck;
                 var response = await aero.save();
                 var response2 = await vuelo.save();
-                success = {'Codigo':true,'Contenido':rangoasientos}
+                success = {'Codigo':true,'Contenido':200}  //200: exito
             }
         }
     } catch (error) {
@@ -895,11 +895,9 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
     let maxDate = req.body['maxDate']; //Limite superior del rango de fechas
     let estado = req.body['estado']; //Estado del vuelo
     let success;
-    //var db = mongoose.connection;
     mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
-        //let newCompra = new Compra(req.body);
         let userResp = await Compra.find({'cedula':idpasa}).exec();
         if (userResp == ""){
             success = {'Codigo':false,'Contenido':'404v'} //No tiene vuelos asociados
@@ -910,8 +908,11 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
                 vueloArray.push(comp['codigoVuelo']);
             });
             let tempVuelo;
-            vueloArray.forEach(function(vuelo){
-                tempVuelo = Vuelo.find({'codigoVuelo':vuelo}).exec();
+            vueloArray.forEach(async function(vuelo){
+                tempVuelo = await Vuelo.find({'codigoVuelo':vuelo}).exec();
+                //Si no hay await aca podria estarse generando un problema. Que tempVuelo sea metido al array
+                //Sin haber recibido el valor del find.
+                //Ahora, puede que el async agregado genere otro. Comprobar si algo sale mal
                 vueloJsonArray.push(tempVuelo);
             });
             vueloArray = [];
