@@ -953,7 +953,6 @@ Para todas las aerolíneas debe mostrar todos los vuelos
 junto con la  cantidad  de  boletos  vendidos  en  cada  
 uno y el monto total correspondiente a los boletos vendidos.
 */
-
 server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, res) => {
     console.log("Request received");
     let success;
@@ -1005,70 +1004,50 @@ server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, 
     res.send(success)
 });
 
-/* Spare code
-        listAerolineas.forEach(async (aerolinea) =>{
-            let idAerolinea = aerolinea['id'];
-            console.log(idAerolinea);
-            let tempVuelos = [] //Contiene cada lista de resultados
-            listAeros.push(aerolinea['nombre']);
-            let vuelos = Vuelo.find({'codigoAerolinea':idAerolinea}).exec();
-            console.log("antes de vuelos.forEach");
-
-            vuelos.forEach(async (vuelo) => {
-                console.log("dentro de vuelos.forEach");
-                let tempResults =[]; //contiene los resultados
-                let precioVuelo = parseint(vuelo['precio']);
-                console.log(precioVuelo);
-                tempResults.push(vuelo['codigoVuelo']);
-                console.log("antes de compra.find");
-                let compras = await Compra.find({'codigoVuelo':vuelo['codigoVuelo']}).exec();
-                let tempMoney = 0;
-                let tempCount = 0;
-
-                compras.forEach(async (compra) =>{
-                    let cantBols = parseint(compra['cantidadBoletos']);
-                    console.log(cantBols);
-                    tempMoney = tempMoney + (precioVuelo*cantBols );
-                    tempCount = tempCount + cantBols;
-                });
-                tempResults.push(tempCount);
-                tempResults.push(tempMoney);
-                tempVuelos.push(tempResults);
-            });
-            listVuelos.push(tempVuelos)
-        });
-*/
 
 /*
-//Conection and function
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
-  // we're connected!
-});
-//Schema to data manipulation
-var kittySchema = new mongoose.Schema({
-  name: String
-});
-
-//Schema use using a model
-var Kitten = mongoose.model('Kitten', kittySchema);
-
-//save method
-fluffy.save(function (err, fluffy) {
-    if (err) return console.error(err);
-    fluffy.speak();
-  });
-
-//find methods
-Kitten.find(function (err, kittens) {
-  if (err) return console.error(err);
-  console.log(kittens);
-})
-//find in rich query
-Kitten.find({ name: /^fluff/ }, callback);
-
+Rango  de boletos  comprados por  cada pasajero.  
+El  rango  va  del menor al mayor número de boletos 
+adquiridos por un pasajero. Por ejemplo, si Ana ha 
+comprado boletos para 5 vuelos, y se identifica que 
+en el vuelo quemenos boletos compró, adquirió uno 
+y en el que más boletos compró, adquirió tres, 
+entonces su rango será [1,3]
 */
+
+server.post("/Administrador/Pasajero_RangoBoletos", async (req, res) => {
+    console.log("Request received");
+    let success;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    try {
+        let listPasajeros = await Pasajero.find().exec();
+        let pasajeros = [];
+        let finalRangos = [];
+        for (i=0;i<listPasajeros.length;i++){
+            let pasajero = listPasajeros[i];
+            pasajeros.push(pasajero['cedula']);
+            let listVentas = await Compra.find({'cedula':pasajero['cedula']}).exec();
+            let rango = [];
+            for (j=0;j<listVentas.length;j++){
+                let tempRango = [];
+                tempRango.push(listVentas[i]['cantidadBoletos']);
+            }
+            tempRango.sort(function(a, b){return a-b});
+            rango.push([tempRango[0],tempRango.pop()]);
+            finalRangos.push(rango);
+        }
+        success = {'Codigo':true,'Pasajeros':pasajeros,'Rangos':finalRangos}
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':"error"}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
+
+
+
 
 
 
