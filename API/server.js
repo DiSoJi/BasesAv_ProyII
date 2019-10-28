@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const { Entropy } = require('entropy-string')
 const server = express();
 const port = 8080;
 //const sql = require('mssql');
@@ -654,6 +655,9 @@ server.post("/CRUDS/CreateCompra", async (req, res) => {
     mongoose.connect(masterdb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
+        let entropy = new Entropy()
+        let string = entropy.string()
+        req.body['codigoCompra'] = string;
         let compraBody = req.body;
         let arrayEstado = [];
         for (i = 0; i < parseInt(req.body['cantidadBoletos']);i++){
