@@ -73,7 +73,6 @@ var vueloSchema = new mongoose.Schema({
     nombre:String,
     origen:String,
     destino:String,
-    sitioWeb:String,
     itinerario:String,
     precio:Number,
     restricciones:Array,
@@ -737,7 +736,7 @@ server.post("/LOGIN/Funcionario", async (req, res) => {
             if (DecryptedPass != pass){
                 success = {'Codigo':false,'Contenido':'404c'}
             }else{
-                success = {'Codigo':true,'Contenido':'200'}
+                success = {'Codigo':true,'Contenido':userResp[0]['tipo']}
             }
         }
     } catch (error) {
