@@ -109,6 +109,7 @@ var compraSchema = new mongoose.Schema({
     cantidadBoletos:Number,
     cantidadMaletas:Number,
     estado:Array,
+    asientos:Array, 
     observaciones:String
 
 }, {
@@ -436,12 +437,58 @@ server.post("/CRUDS/GetVuelo_codigo", async (req, res) => {
     mongoose.disconnect();
     res.send(success)
 });
-
-
 //todo esto en un solo API
 //GetVuelo x rango de fechas //Si el mae pone Any entonces minDate = 2000 y maxDate = 2030
 //Get Vuelo x origen y destino  //Si elige any yo hago if-else
 
+
+server.post("/CRUDS/GetVuelo_fechasxlugares", async (req, res) => {
+    console.log("Request received");
+    //let codigo = req.body['codigoVuelo']
+    let minDate = req.body['minDate'];
+    let maxDate = req.body['maxDate'];
+    let origen = req.body['origen'];
+    let destino = req.body['destino'];
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    let success;
+    try {
+        var vueloArray = await Vuelo.find().exec();
+        let vuelosIn = [];
+        vueloArray.forEach(function(vuelo){
+            let vueloDate = vuelo['fechaVuelo'];
+            let vueloDestino = vuelo['destino'];
+            let vueloOrigen = vuelo['origen'];
+            if (vueloDate <= maxDate && vueloDate >= minDate){
+                if (origen == "Any"){
+                    if (destino == "Any"){
+                        vuelosIn.push(vuelo);
+                    }else{
+                        if (vueloDestino == destino){
+                            vuelosIn.push(vuelo);
+                        }
+                    }
+                }else{
+                    if (vueloOrigen == origen){
+                        if (destino == "Any"){
+                            vuelosIn.push(vuelo);
+                        }else{
+                            if (vueloDestino == destino){
+                                vuelosIn.push(vuelo);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        success = {'Codigo':true,'Contenido':vuelosIn}
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':error}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
 
 
 server.get("/CRUDS/GetVuelo_todos", async (req, res) => {
@@ -807,7 +854,7 @@ server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. F
         aero = aero[0]
         let tempArray = aero['estado'];
         for (i = 0; i < tempArray.length; i++){
-            if (tempArray[i] == "comprado" && numCheck != 0){
+            if (tempArray[i] == "Bought" && numCheck != 0){
                 tempArray[i] = "checkedIn";
                 numCheck--;
             }
@@ -826,6 +873,7 @@ server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. F
             }else{
                 let asientos = parseInt(vuelo['capacidadMaxima']) - parseInt(vuelo['asientosDisponibles']);
                 let asientos2 = asientos + tempCheck;
+                //crear lista con numero de asientos y segun se mete el estado de checkedIn se mete esta a asientos.
                 let rangoasientos = asientos.toString + asientos2.toString;
                 var response = await aero.save();
                 var response2 = await vuelo.save();
@@ -863,7 +911,7 @@ server.post("/Pasajeros/vuelosAsociados", async (req, res) => {
             });
             let tempVuelo;
             vueloArray.forEach(function(vuelo){
-                tempVuelo = await Vuelo.find({'codigoVuelo':vuelo}).exec();
+                tempVuelo = Vuelo.find({'codigoVuelo':vuelo}).exec();
                 vueloJsonArray.push(tempVuelo);
             });
             vueloArray = [];
