@@ -1138,6 +1138,10 @@ server.get("/Administrador/DestinosMasVisitados", async (req, res) => {
             totales[destinoIndex][0] += amountTicketes; //Añadimos a la lista de totales al campo 0 de la posicion correspondiente al destino
             totales[destinoIndex][1] += amountPasajeros; //Añadimos a la lista de totales al campo 1 de la posicion correspondiente al destino
         }
+        /* //In case of deciding to order here is this shit
+        totales.sort(function(first, second) {
+            return second[0] - first[0];
+        });*/
         //Los indices de destinos coinciden con los de totales, esto pues cada entrada en totales corresponde al destino del mismo indice
         success = {'Codigo':true,'Contenido':{'Destinos':destinos,'Totales':totales}} //destinos lleva la lista de destinos y totales lleva la lista de listas de los valores correspondiente a los destinos
     } catch (error) {
@@ -1158,6 +1162,8 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
     console.log("Request received");
     let minDate = req.body['minDate'];
     let maxDate = req.body['maxDate'];
+    minDate = new Date(minDate);
+    maxDate = new Date(maxDate);
     let estado = req.body['estado'];
     let pasajero = req.body['idPasajero'];
     let success;
@@ -1167,9 +1173,10 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
         let compras = await Compra.find().exec();
         let arrayComprasinDate = [];
         let arrayComprasforClient = [];
-        for (i = 0;i<compras;i++){ //Para cada compra
+        for (i = 0;i<compras.length;i++){ //Para cada compra
             let compra = compras[i]; //Extrae la compra
-            if (compra['fechaCompra']<=maxDate && compra['fechaCompra']>=minDate){ //Si esta en el rango de fechas
+            let compraFecha = new Date(compra['fechaCompra']);
+            if (compraFecha<=maxDate && compraFecha>=minDate){ //Si esta en el rango de fechas
                 if (estado == "Any"){ //Si no importa el estado
                     arrayComprasinDate.push(compra); //Lo mete a la lista de vuelos que estan en el rango y el estado
                     if (pasajero == compra['idPasajero']){ //Si cumple con el idPasajero lo mete a la lista de los que cumplen
@@ -1291,6 +1298,60 @@ server.get("/Test/test1", async (req, res) => {
 });
 
 
+server.get("/Test/test2", async (req, res) => {
+    console.log("Request received");
+    let success;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    try {
+        let keys = ["agua","perro","gato","iguana","Ramiro"];
+        let Totales = [[0,0],[5,1],[4,1],[8,1],[6,3]]
+        let dic = {};
+        //for (i=0;)
+        console.log("before items array");
+        // Create items array
+        let items = Object.keys(Totales).map(function(key) {
+            return [key, Totales[key]];
+        });
+        console.log("before sort");
+        // Sort the array based on the second element
+        Totales.sort(function(first, second) {
+            return second[0] - first[0];
+        });
+        
+        // Create a new array with only the first 5 items
+        //console.log(items.slice(0, 3));
+        items = Totales
+        //let finalItems = []
+        /*for (k=0;k<items.length;k++){
+            let tempItem = items[k];
+            let tempName = await Pasajero.find({'cedula':tempItem[0]}).exec();
+            tempName = tempName[0]['nombreCompleto'];
+            tempName = tempName.concat(" - ");
+            tempName = tempName.concat(tempItem[0]);
+            finalItems.push([tempName,tempItem[1]]);
+        }*/
+        success = {'Codigo':true,'Contenido':items} 
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':"error"}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
+/* "Totales": [
+            [
+                0,
+                0
+            ],
+            [
+                5,
+                1
+            ],
+            [
+                4,
+                1
+            ]
+        ]*/
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
