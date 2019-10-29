@@ -916,9 +916,20 @@ server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. F
                 aerobody['asientos'] = tempAsientos;
                 vuelo['asientosDisponibles'] = asientosDisponibles - tempCheck;
                 aero = aero.set(aerobody);
+                console.log(aero);
                 let codigo = aero['codigoCompra'];
-                var response = aero.findOneAndUpdate({'codigoCompra':codigo}, aero, {upsert:true});
-                //var response = await aero.save();
+                Compra.update({
+                    codigoCompra: codigo
+                  }, {
+                    $set: { 
+                      "estado": tempArray,
+                      "asientos": tempAsientos
+                    }
+                  }, function (err, user) {
+                      if (err) throw error
+                      console.log(user)
+                      console.log("update ticket complete")
+                })
                 var response2 = await vuelo.save();
                 success = {'Codigo':true,'Contenido':tempAsientos}  //Devuelve el array con los asientos
             }
@@ -1130,7 +1141,7 @@ server.post("/Administrador/DestinosMasVisitados", async (req, res) => {
 /*
 *Cantidad  de operaciones  de  compra  de  boletos registradas  en  el sistema,
 *esta  información  se  puede filtrar  por pasajero, por rango de fechas, 
-*por estado de vuelo. También mostrar los tres pasajeroscon más vuelos adquiridos.
+*por estado de vuelo. También mostrar los tres pasajeros con más vuelos adquiridos.
 */
 
 server.post("/Administrador/CantidadCompras", async (req, res) => {
@@ -1140,9 +1151,20 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
     mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
-
-        //Los indices de destinos coinciden con los de totales, esto pues cada entrada en totales corresponde al destino del mismo indice
-        success = {'Codigo':true,'Destinos':destinos,'Totales':totales} //destinos lleva la lista de destinos y totales lleva la lista de listas de los valores correspondiente a los destinos
+        let totalCantCompras = 0;
+        let mejoresPasajeros = 0;
+        /* 
+        * Buscar todas la compras en el rango de fechas
+        * Para cada compra conservarla si el estado del vuelo es el que se desea
+        * -> Para saber el estado del vuelo se debe obtener el vuelo para esa compra y sacarle el estado
+        * -> Si el estado es any brincarse esa comparacion
+        * La lista con los resultantes es la deseada para vuelos
+        * Para calcular los tres pasajeros se puede usar un algoritmo similar al API previo a este
+        * -> Almacenar cada cliente por cedula en una lista sin repetir
+        * -> Para cada uno de estos (su indice) almacenar y acumular en otra lista (por indice) un incremental por compra
+        * -> Encontrar una forma de ordenar la lista segun cantidad pero sin olvidar a que pasajero corresponde
+        */
+        success = {'Codigo':true,'CantidadCompras':totalCantCompras,'Pasajeros':mejoresPasajeros} 
     } catch (error) {
         success = {'Codigo':false,'Contenido':"error"}
     }
