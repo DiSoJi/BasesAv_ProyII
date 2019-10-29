@@ -111,7 +111,8 @@ var compraSchema = new mongoose.Schema({
     cantidadBoletos:Number,
     cantidadMaletas:Number,
     estado:Array,
-    asientos:Array, 
+    asientos:Array,
+    fechaCompra:Date, //Necesaria para ser usada en la 4ta API de administrador
     observaciones:String
 
 }, {
@@ -666,14 +667,17 @@ server.post("/CRUDS/CreateCompra", async (req, res) => {
         let entropy = new Entropy()
         let string = entropy.string()
         req.body['codigoCompra'] = string;
-
+        let date = new Date();
+        date = date.toISOString();
         if (isThereCompra != ""){
             compra = isThereCompra[0];
             req.body['cantidadBoletos'] = parseInt(compra['cantidadBoletos']) + parseInt(req.body['cantidadBolestos']);
             arrayAsientos = compra['asientos'];
             arrayEstado = compra['estado'];
             req.body['codigoCompra'] = compra['codigoCompra'];
+            date = req.body['fechaCompra'];
         }
+        req.body['fechaCompra'] = date;
         let compraBody = req.body;
         for (i = 0; i < parseInt(tempTickets);i++){
             arrayEstado.push("Bought");
@@ -912,7 +916,9 @@ server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. F
                 aerobody['asientos'] = tempAsientos;
                 vuelo['asientosDisponibles'] = asientosDisponibles - tempCheck;
                 aero = aero.set(aerobody);
-                var response = await aero.save();
+                let codigo = aero['codigoCompra'];
+                var response = aero.findOneAndUpdate({'codigoCompra':codigo}, aero, {upsert:true});
+                //var response = await aero.save();
                 var response2 = await vuelo.save();
                 success = {'Codigo':true,'Contenido':tempAsientos}  //Devuelve el array con los asientos
             }
@@ -1091,23 +1097,28 @@ server.post("/Administrador/DestinosMasVisitados", async (req, res) => {
     try {
         let allVuelos = await Vuelo.find().exec();
         let destinos = [];
+        let totales = [];
         for (i=0;i<allVuelos.length;i++){
             let vuelo = allVuelos[i]
             let destinoIndex = destinos.indexOf(vuelo['destino']);
-            if ( destinoIndex == -1){
-                destinos.push(vuelo['destino']);
+            let amountPasajeros = 0;
+            let amountTicketes = 0;
+            if ( destinoIndex == -1){ //Si el destino no existe (no tiene indice en la lista) 
+                destinos.push(vuelo['destino']); //Añade el destino al final de la lista
+                totales.push([0,0]); //Para cada destino añade a totales una lista con dos elementos: [amountTicketes,amountPasajeros]
             }
-            /*
-            *POR TERMINAR: Se obtienen todos los vuelos, extraer los destinos sin repetir meterlos en lista destinos
-            * Extraer el indice del destino del vuelo actual (linea de codigo siguiente)
-            * Extraer las compras para este vuelo. La cantidad de compras es tambien la cantidad de pasajeros
-            * Sumar la cantidad de tickets
-            * Relacionar estos datos con el destino de alguna forma (utilizando el indice talvez?)
-            */
-            destinoIndex = destinos.indexOf(vuelo['destino']);
-            let compras = await Compra.find({'codigoVuelo':vuelo['codigoVuelo']});
+            //Si el destino ya existe en la lista es innecesario añadir nada mas
+            destinoIndex = destinos.indexOf(vuelo['destino']); //obtenemos el indice de nuevo (por seguridad)
+            let compras = await Compra.find({'codigoVuelo':vuelo['codigoVuelo']}); //obtenemos todas las compras para este vuelo
+            amountPasajeros = compras.length; //Como cada pasajero tiene una sola compra por vuelo esto sirve
+            for (j = 0;j<amountPasajeros;j++){ //Para cada compra
+                amountTicketes += parseInt(compras[j]['cantidadBoletos']); //acumulamos la cantidad de boletos
+            }
+            totales[destinoIndex][0] += amountTicketes; //Añadimos a la lista de totales al campo 0 de la posicion correspondiente al destino
+            totales[destinoIndex][1] += amountPasajeros; //Añadimos a la lista de totales al campo 1 de la posicion correspondiente al destino
         }
-        success = {'Codigo':true,'Pasajeros':pasajeros,'Rangos':finalRangos}
+        //Los indices de destinos coinciden con los de totales, esto pues cada entrada en totales corresponde al destino del mismo indice
+        success = {'Codigo':true,'Destinos':destinos,'Totales':totales} //destinos lleva la lista de destinos y totales lleva la lista de listas de los valores correspondiente a los destinos
     } catch (error) {
         success = {'Codigo':false,'Contenido':"error"}
     }
@@ -1115,6 +1126,32 @@ server.post("/Administrador/DestinosMasVisitados", async (req, res) => {
     res.send(success)
 });
 
+
+/*
+*Cantidad  de operaciones  de  compra  de  boletos registradas  en  el sistema,
+*esta  información  se  puede filtrar  por pasajero, por rango de fechas, 
+*por estado de vuelo. También mostrar los tres pasajeroscon más vuelos adquiridos.
+*/
+
+server.post("/Administrador/CantidadCompras", async (req, res) => {
+    console.log("Request received");
+    let success;
+    //var db = mongoose.connection;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    try {
+
+        //Los indices de destinos coinciden con los de totales, esto pues cada entrada en totales corresponde al destino del mismo indice
+        success = {'Codigo':true,'Destinos':destinos,'Totales':totales} //destinos lleva la lista de destinos y totales lleva la lista de listas de los valores correspondiente a los destinos
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':"error"}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+/*---Funcionario APIs---------------------------------------------------------------------------------------*/
 
  server.listen(process.env.PORT || port, () => {
     //var port = server.address().port;
