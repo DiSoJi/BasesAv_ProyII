@@ -671,7 +671,7 @@ server.post("/CRUDS/CreateCompra", async (req, res) => {
         date = date.toISOString();
         if (isThereCompra != ""){
             compra = isThereCompra[0];
-            req.body['cantidadBoletos'] = parseInt(compra['cantidadBoletos']) + parseInt(req.body['cantidadBolestos']);
+            req.body['cantidadBoletos'] = parseInt(compra['cantidadBoletos']) + parseInt(req.body['cantidadBoletos']);
             arrayAsientos = compra['asientos'];
             arrayEstado = compra['estado'];
             req.body['codigoCompra'] = compra['codigoCompra'];
@@ -690,7 +690,17 @@ server.post("/CRUDS/CreateCompra", async (req, res) => {
             response = await newCompra.save();
         }else{
             compra = compra.set(compraBody);
-            response = await compra.save();
+            Compra.update({
+                'codigoCompra': compra['codigoCompra']
+              }, {
+                $set: { 
+                  "estado": compra['estado'],
+                  "asientos": compra['asientos'],
+                  "cantidadBoletos": compra['cantidadBoletos']
+                }
+              }, function (err, user) {})
+            //response = await compra.save();
+            response = compra;
         }
         success = {'Codigo':true,'Contenido':response}
         
