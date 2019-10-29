@@ -1153,8 +1153,12 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
     try {
         let totalCantCompras = 0;
         let mejoresPasajeros = 0;
+        let compras = await Compra.find().exec();
+        for (i = 0;i<compras;i++){
+            
+        }
         /* 
-        * Buscar todas la compras en el rango de fechas
+        * Buscar todas la compras en el rango de fechas -*
         * Para cada compra conservarla si el estado del vuelo es el que se desea
         * -> Para saber el estado del vuelo se debe obtener el vuelo para esa compra y sacarle el estado
         * -> Si el estado es any brincarse esa comparacion
