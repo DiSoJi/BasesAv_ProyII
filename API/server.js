@@ -1025,7 +1025,7 @@ server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, 
                 let tempResults =[]; //contiene los resultados
                 let precioVuelo = parseInt(vuelo['precio']);
                 console.log(precioVuelo);
-                tempResults.push(vuelo['codigoVuelo']);
+                tempResults.push(vuelo['nombre']);
                 console.log("antes de compra.find");
                 let compras = await Compra.find({'codigoVuelo':vuelo['codigoVuelo']}).exec();
                 let tempMoney = 0;
@@ -1062,7 +1062,7 @@ y en el que más boletos compró, adquirió tres,
 entonces su rango será [1,3]
 */
 
-server.post("/Administrador/Pasajero_RangoBoletos", async (req, res) => {
+server.get("/Administrador/Pasajero_RangoBoletos", async (req, res) => {
     console.log("Request received");
     let success;
     //var db = mongoose.connection;
@@ -1074,7 +1074,9 @@ server.post("/Administrador/Pasajero_RangoBoletos", async (req, res) => {
         let finalRangos = [];
         for (i=0;i<listPasajeros.length;i++){
             let pasajero = listPasajeros[i];
-            pasajeros.push(pasajero['cedula']);
+            let tempCedNombre = pasajero['cedula'].concat(" - ");
+            tempCedNombre = tempCedNombre.concat(pasajero['nombre']);
+            pasajeros.push(tempCedNombre);
             let listVentas = await Compra.find({'cedula':pasajero['cedula']}).exec();
             let rango = [];
             for (j=0;j<listVentas.length;j++){
@@ -1085,7 +1087,7 @@ server.post("/Administrador/Pasajero_RangoBoletos", async (req, res) => {
             rango.push([tempRango[0],tempRango.pop()]);
             finalRangos.push(rango);
         }
-        success = {'Codigo':true,'Pasajeros':pasajeros,'Rangos':finalRangos}
+        success = {'Codigo':true,'Contenido':{'Pasajeros':pasajeros,'Rangos':finalRangos}}
     } catch (error) {
         success = {'Codigo':false,'Contenido':"error"}
     }
@@ -1096,10 +1098,10 @@ server.post("/Administrador/Pasajero_RangoBoletos", async (req, res) => {
 /*
 ¿Cuáles son las destinos más visitados? 
 Se debe mostrar el nombre de cada destino
-y la cantidad de pasajero que han comprado vuelos para esedestino.
+y la cantidad de pasajero que han comprado vuelos para ese destino.
 */
 
-server.post("/Administrador/DestinosMasVisitados", async (req, res) => {
+server.get("/Administrador/DestinosMasVisitados", async (req, res) => {
     console.log("Request received");
     let success;
     //var db = mongoose.connection;
@@ -1129,7 +1131,7 @@ server.post("/Administrador/DestinosMasVisitados", async (req, res) => {
             totales[destinoIndex][1] += amountPasajeros; //Añadimos a la lista de totales al campo 1 de la posicion correspondiente al destino
         }
         //Los indices de destinos coinciden con los de totales, esto pues cada entrada en totales corresponde al destino del mismo indice
-        success = {'Codigo':true,'Destinos':destinos,'Totales':totales} //destinos lleva la lista de destinos y totales lleva la lista de listas de los valores correspondiente a los destinos
+        success = {'Codigo':true,'Contenido':{'Destinos':destinos,'Totales':totales}} //destinos lleva la lista de destinos y totales lleva la lista de listas de los valores correspondiente a los destinos
     } catch (error) {
         success = {'Codigo':false,'Contenido':"error"}
     }
@@ -1146,16 +1148,57 @@ server.post("/Administrador/DestinosMasVisitados", async (req, res) => {
 
 server.post("/Administrador/CantidadCompras", async (req, res) => {
     console.log("Request received");
+    let minDate = req.body['minDate'];
+    let maxDate = req.body['maxDate'];
+    let estado = req.body['estado'];
+    let pasajero = req.body['idPasajero'];
     let success;
-    //var db = mongoose.connection;
     mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
-        let totalCantCompras = 0;
         let mejoresPasajeros = 0;
         let compras = await Compra.find().exec();
-        for (i = 0;i<compras;i++){
-            
+        let arrayComprasinDate = [];
+        let arrayComprasforClient = [];
+        for (i = 0;i<compras;i++){ //Para cada compra
+            let compra = compras[i]; //Extrae la compra
+            if (compra['fechaCompra']<=maxDate && compra['fechaCompra']>=minDate){ //Si esta en el rango de fechas
+                if (estado == "Any"){ //Si no importa el estado
+                    arrayComprasinDate.push(compra); //Lo mete a la lista de vuelos que estan en el rango y el estado
+                    if (pasajero == compra['idPasajero']){ //Si cumple con el idPasajero lo mete a la lista de los que cumplen
+                        arrayComprasforClient.push(compra); //aqui lo mete
+                    } else{
+                        if (pasajero == 'Any'){ //Si no importa el id del pasajer lo mete
+                            arrayComprasforClient.push(compra);
+                        }
+                    }
+                } else{ //Ahora, si el estado si importa
+                    let vuelo = await Vuelo.find({'codigoVuelo':compra['condigoVuelo']}).exec(); //Se extrae el vuelo
+                    vuelo = vuelo[0]; //Se cada el vuelo (viene en una lista con un solo elemento)
+                    if (vuelo['estado'] == estado){ //Si el estado del vuelo es el que buscamos
+                        arrayComprasinDate.push(compra); //Lo mete a los que cumplen rango de fechas y estado
+                        if (pasajero == compra['idPasajero']){ //Si cumple con el idPasajero lo mete a la lista de los que cumplen
+                            arrayComprasforClient.push(compra); //aqui lo mete
+                        } else{
+                            if (pasajero == 'Any'){ //Si no importa el id del pasajero lo mete
+                                arrayComprasforClient.push(compra);
+                            }
+                        }
+                    }
+                }
+                
+            }
+        }
+        //Una vez aqui ya se tiene lo primero que se desea, los datos en el rago de fecha y estado para el pasajero especifico.
+        let amountCompras = arrayComprasforClient.length; //Aqui se extrae el tamaño de la lista de compras, lo que nos da el primer dato deseado
+        let comprasDict = {};
+        for (j=0;j<arrayComprasinDate.length;j++){ //Para cada compra (indiferentemente del usuario)
+            tempCompra = arrayComprasinDate[j];
+            comprasDict[tempCompra['idPasajero']] = 0;
+        }
+        for (j=0;j<arrayComprasinDate.length;j++){ //Para cada compra (indiferentemente del usuario)
+            tempCompra = arrayComprasinDate[j];
+            comprasDict[tempCompra['idPasajero']] = parseInt(comprasDict[tempCompra['idPasajero']]) + parseInt(tempCompra['cantidadBoletos']);
         }
         /* 
         * Buscar todas la compras en el rango de fechas -*
@@ -1169,7 +1212,7 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
         * -> Encontrar una forma de ordenar la lista segun cantidad pero sin olvidar a que pasajero corresponde
         * -> Posible solucion: Utilizar un diccionartio y ordenarlo
         */
-        success = {'Codigo':true,'CantidadCompras':totalCantCompras,'Pasajeros':mejoresPasajeros} 
+        success = {'Codigo':true,'Contenido':{'CantidadCompras':amountCompras,'Pasajeros':mejoresPasajeros}} 
     } catch (error) {
         success = {'Codigo':false,'Contenido':"error"}
     }
@@ -1179,6 +1222,11 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 /*---Funcionario APIs---------------------------------------------------------------------------------------*/
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
  server.listen(process.env.PORT || port, () => {
     //var port = server.address().port;
