@@ -666,41 +666,51 @@ server.post("/CRUDS/CreateCompra", async (req, res) => {
         let arrayAsientos = [];
         let entropy = new Entropy()
         let string = entropy.string()
-        req.body['codigoCompra'] = string;
         let date = new Date();
         date = date.toISOString();
+        let compra;
         if (isThereCompra != ""){
+            console.log("Theres already a compra like that");
             compra = isThereCompra[0];
+            
             req.body['cantidadBoletos'] = parseInt(compra['cantidadBoletos']) + parseInt(req.body['cantidadBoletos']);
             arrayAsientos = compra['asientos'];
             arrayEstado = compra['estado'];
-            req.body['codigoCompra'] = compra['codigoCompra'];
-            date = req.body['fechaCompra'];
+            date = compra['fechaCompra'];
+            string = compra['codigoCompra'];
         }
+        req.body['codigoCompra'] = string;
         req.body['fechaCompra'] = date;
-        let compraBody = req.body;
+        //let compraBody = req.body;
         for (i = 0; i < parseInt(tempTickets);i++){
             arrayEstado.push("Bought");
             arrayAsientos.push(0);
         }
-        compraBody['estado'] = arrayEstado;
-        compraBody['asientos'] = arrayAsientos;
+        req.body['estado'] = arrayEstado;
+        req.body['asientos'] = arrayAsientos;
         if (isThereCompra == ""){
-            let newCompra = new Compra(compraBody);
+            let newCompra = new Compra(req.body);
             response = await newCompra.save();
         }else{
-            compra = compra.set(compraBody);
-            Compra.update({
-                'codigoCompra': compra['codigoCompra']
+            ///compra = compra.set(compraBody);
+            console.log("req.body");
+            console.log(req.body);
+            /*
+            Compra.updateOne({
+                'codigoCompra': req.body['codigoCompra']
               }, {
                 $set: { 
-                  "estado": compra['estado'],
-                  "asientos": compra['asientos'],
-                  "cantidadBoletos": compra['cantidadBoletos']
+                  'estado': req.body['estado'],
+                  'asientos': req.body['asientos'],
+                  'cantidadBoletos': req.body['cantidadBoletos']
                 }
-              }, function (err, user) {})
+              }, function (err, user) {})*/
+            let update = await Compra.findOneAndUpdate({'_id':compra['_id']},{'estado':req.body['estado']});
+            update = await Compra.findOneAndUpdate({'_id':compra['_id']},{'asientos':req.body['asientos']});
+            update = await Compra.findOneAndUpdate({'_id':compra['_id']},{'cantidadBoletos':req.body['cantidadBoletos']});
+            update = await Compra.findOneAndUpdate({'_id':compra['_id']},{'cantidadMaletas':req.body['cantidadMaletas']});
             //response = await compra.save();
-            response = compra;
+            response = req.body;
         }
         success = {'Codigo':true,'Contenido':response}
         
@@ -928,7 +938,7 @@ server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. F
                 aero = aero.set(aerobody);
                 console.log(aero);
                 let codigo = aero['codigoCompra'];
-                Compra.update({
+                let update = await Compra.update({
                     'codigoCompra': codigo //if now fails is because of the ''
                   }, {
                     $set: { 
@@ -1193,7 +1203,7 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
                         }
                     }
                 } else{ //Ahora, si el estado si importa
-                    let vuelo = await Vuelo.find({'codigoVuelo':compra['condigoVuelo']}).exec(); //Se extrae el vuelo
+                    let vuelo = await Vuelo.find({'codigoVuelo':compra['codigoVuelo']}).exec(); //Se extrae el vuelo
                     vuelo = vuelo[0]; //Se cada el vuelo (viene en una lista con un solo elemento)
                     if (vuelo['estado'] == estado){ //Si el estado del vuelo es el que buscamos
                         arrayComprasinDate.push(compra); //Lo mete a los que cumplen rango de fechas y estado
@@ -1272,7 +1282,7 @@ server.get("/Funcionario/Abordaje", async (req, res) => {
         }
         compra['estado'] = estados;
         let codigo = compra['codigoCompra'];
-        Compra.update({
+        let update = await Compra.update({
             'codigoCompra': codigo
           }, {
             $set: { 
