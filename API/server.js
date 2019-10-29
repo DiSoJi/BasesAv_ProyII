@@ -919,17 +919,13 @@ server.post("/Pasajeros/CheckIn", async (req, res) => { //Deberia estar listo. F
                 console.log(aero);
                 let codigo = aero['codigoCompra'];
                 Compra.update({
-                    codigoCompra: codigo
+                    'codigoCompra': codigo //if now fails is because of the ''
                   }, {
                     $set: { 
                       "estado": tempArray,
                       "asientos": tempAsientos
                     }
-                  }, function (err, user) {
-                      if (err) throw error
-                      console.log(user)
-                      console.log("update ticket complete")
-                })
+                  }, function (err, user) {})
                 var response2 = await vuelo.save();
                 success = {'Codigo':true,'Contenido':tempAsientos}  //Devuelve el array con los asientos
             }
@@ -1057,7 +1053,7 @@ Rango  de boletos  comprados por  cada pasajero.
 El  rango  va  del menor al mayor número de boletos 
 adquiridos por un pasajero. Por ejemplo, si Ana ha 
 comprado boletos para 5 vuelos, y se identifica que 
-en el vuelo quemenos boletos compró, adquirió uno 
+en el vuelo que menos boletos compró, adquirió uno 
 y en el que más boletos compró, adquirió tres, 
 entonces su rango será [1,3]
 */
@@ -1085,7 +1081,7 @@ server.get("/Administrador/Pasajero_RangoBoletos", async (req, res) => {
             let tempRango = [];
             for (j=0;j<listVentas.length;j++){
                 console.log("Inside for listVentas");
-                tempRango.push(parseInt(listVentas[i]['cantidadBoletos']));
+                tempRango.push(parseInt(listVentas[j]['cantidadBoletos']));
             }
             console.log("Before sort");
             console.log(tempRango);
@@ -1243,6 +1239,109 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 /*---Funcionario APIs---------------------------------------------------------------------------------------*/
+
+/*
+* Funcion de Abordaje
+*/
+server.get("/Funcionario/Abordaje", async (req, res) => {
+    console.log("Request received");
+    let success;
+    //var db = mongoose.connection;
+    let codigoVuelo = req.body['codigoVuelo'];
+    let cedula = req.body['cedula'];
+    mongoose.connect(masterdb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    try {
+        let compras = await Compra.find({'idPasajero':cedula,'codigoVuelo':codigoVuelo}).exec();
+        let compra = compras[0];
+        let estados = compra['estado'];
+        for (i=0;i<estados.length;i++){
+            if (estados[i] == "checkedIn"){
+                estados[i] = "Used";
+            }
+        }
+        compra['estado'] = estados;
+        let codigo = compra['codigoCompra'];
+        Compra.update({
+            'codigoCompra': codigo
+          }, {
+            $set: { 
+              "estado": estados
+            }
+          }, function (err, user) {})
+        success = {'Codigo':true,'Contenido':compra} //destinos lleva la lista de destinos y totales lleva la lista de listas de los valores correspondiente a los destinos
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':"error"}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
+
+/*
+* Vuelosregistrados  en  el  sistema:  se  muestra  un 
+* listado  con  la información de los vuelos registrados. 
+* Se puede filtrar por rango de fechas,  por  estado, por  
+* nombre  de  pasajero.  Para  cada vuelose debe mostrar el detalle
+*/
+
+server.post("/Funcionario/Vuelos", async (req, res) => {
+    console.log("Request received");
+    let minDate = req.body['minDate'];
+    let maxDate = req.body['maxDate'];
+    minDate = new Date(minDate);
+    maxDate = new Date(maxDate);
+    let estado = req.body['estado'];
+    let pasajero = req.body['idPasajero'];
+    let success;
+    let finalVuelos = [];
+    mongoose.connect(slavedb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    try {
+        if (pasajero == "Any"){
+            let vuelos = await Vuelo.find().exec();
+            for (i = 0;i <vuelos.length;i++){
+                let vuelo = vuelos[i];
+                fechaVuelo = new Date(vuelo['fechaVuelo']);
+                if (fechaVuelo >= minDate && fechaVuelo <= maxDate){
+                    if (estado == "Any"){
+                        finalVuelos.push(vuelo);
+                    }else{
+                        if (vuelo['estado'] == estado){
+                            finalVuelos.push(vuelo);
+                        }
+                    }
+                }
+            }
+            
+        }else{
+            let compras = await Compra.find({'idPasajero':pasajero}).exec();
+            for (i = 0;i< compras.length;i++){
+                let compra = compras[i];
+                let vuelo = await Vuelo.find({'codigoVuelo':compra['codigoVuelo']}).exec();
+                vuelo = vuelo[0];
+                let fechaVuelo = new Date(vuelo['fechaVuelo']);
+                if (fechaVuelo >= minDate && fechaVuelo <= maxDate){
+                    if (estado == "Any"){
+                        finalVuelos.push(vuelo);
+                    }else{
+                        if (vuelo['estado'] == estado){
+                            finalVuelos.push(vuelo);
+                        }
+                    }
+                }
+            }
+        }
+        success = {'Codigo':true,'Contenido':finalVuelos} 
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':"error"}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+/*---testing APIs (Remember to delete from production---------------------------------------------------------------------------------------*/
 
 server.get("/Test/test1", async (req, res) => {
     console.log("Request received");
