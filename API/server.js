@@ -1023,7 +1023,7 @@ server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, 
                 let vuelo = vuelos[j];
                 console.log("dentro de vuelos.forEach");
                 let tempResults =[]; //contiene los resultados
-                let precioVuelo = parseint(vuelo['precio']);
+                let precioVuelo = parseInt(vuelo['precio']);
                 console.log(precioVuelo);
                 tempResults.push(vuelo['codigoVuelo']);
                 console.log("antes de compra.find");
@@ -1032,7 +1032,7 @@ server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, 
                 let tempCount = 0;
                 for (k=0;k<compras.length;k++){
                     let compra = compras[k];
-                    let cantBols = parseint(compra['cantidadBoletos']);
+                    let cantBols = parseInt(compra['cantidadBoletos']);
                     console.log(cantBols);
                     tempMoney = tempMoney + (precioVuelo*cantBols );
                     tempCount = tempCount + cantBols;
@@ -1043,7 +1043,7 @@ server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, 
             }
             listVuelos.push(tempVuelos)
         }
-        success = {'Codigo':true,'Aerolineas':listAeros,'Vuelos':listVuelos}
+        success = {'Codigo':true,'Contenido':{'Aerolineas':listAeros,'Vuelos':listVuelos}}
     } catch (error) {
         success = {'Codigo':false,'Contenido':"error"}
     }
@@ -1163,6 +1163,7 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
         * -> Almacenar cada cliente por cedula en una lista sin repetir
         * -> Para cada uno de estos (su indice) almacenar y acumular en otra lista (por indice) un incremental por compra
         * -> Encontrar una forma de ordenar la lista segun cantidad pero sin olvidar a que pasajero corresponde
+        * -> Posible solucion: Utilizar un diccionartio y ordenarlo
         */
         success = {'Codigo':true,'CantidadCompras':totalCantCompras,'Pasajeros':mejoresPasajeros} 
     } catch (error) {
