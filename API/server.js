@@ -1071,26 +1071,34 @@ server.get("/Administrador/Pasajero_RangoBoletos", async (req, res) => {
     try {
         let listPasajeros = await Pasajero.find().exec();
         let pasajeros = [];
-        let finalRangos = [];
+        let rango = [];
         for (i=0;i<listPasajeros.length;i++){
             let pasajero = listPasajeros[i];
-            let tempCedNombre = pasajero['cedula'].concat(" - ");
-            tempCedNombre = tempCedNombre.concat(pasajero['nombre']);
+            console.log(pasajero);
+            let tempCedNombre = pasajero['cedula'].toString().concat(" - ");
+            console.log(tempCedNombre);
+            tempCedNombre = tempCedNombre.concat(pasajero['nombreCompleto']);
             pasajeros.push(tempCedNombre);
-            let listVentas = await Compra.find({'cedula':pasajero['cedula']}).exec();
-            let rango = [];
+            console.log("Before listVentas");
+            let listVentas = await Compra.find({'idPasajero':pasajero['cedula']}).exec();
+            console.log("After listVentas");
+            let tempRango = [];
             for (j=0;j<listVentas.length;j++){
-                let tempRango = [];
-                tempRango.push(listVentas[i]['cantidadBoletos']);
+                console.log("Inside for listVentas");
+                tempRango.push(parseInt(listVentas[i]['cantidadBoletos']));
             }
-            tempRango.sort(function(a, b){return a-b});
+            console.log("Before sort");
+            console.log(tempRango);
+            tempRango.sort(function(a, b){
+                return a-b;
+            });
+            console.log("After sort");
             rango.push([tempRango[0],tempRango.pop()]);
-            finalRangos.push(rango);
         }
-        success = {'Codigo':true,'Contenido':{'Pasajeros':pasajeros,'Rangos':finalRangos}}
+        success = {'Codigo':true,'Contenido':{'Pasajeros':pasajeros,'Rangos':rango}}
     } catch (error) {
         success = {'Codigo':false,'Contenido':"error"}
-    }
+    } 
     mongoose.disconnect();
     res.send(success)
 });
@@ -1156,7 +1164,6 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
     mongoose.connect(slavedb, {useNewUrlParser: true});
     console.log("Connected to mongodb");
     try {
-        let mejoresPasajeros = 0;
         let compras = await Compra.find().exec();
         let arrayComprasinDate = [];
         let arrayComprasforClient = [];
@@ -1200,19 +1207,26 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
             tempCompra = arrayComprasinDate[j];
             comprasDict[tempCompra['idPasajero']] = parseInt(comprasDict[tempCompra['idPasajero']]) + parseInt(tempCompra['cantidadBoletos']);
         }
-        /* 
-        * Buscar todas la compras en el rango de fechas -*
-        * Para cada compra conservarla si el estado del vuelo es el que se desea
-        * -> Para saber el estado del vuelo se debe obtener el vuelo para esa compra y sacarle el estado
-        * -> Si el estado es any brincarse esa comparacion
-        * La lista con los resultantes es la deseada para vuelos
-        * Para calcular los tres pasajeros se puede usar un algoritmo similar al API previo a este
-        * -> Almacenar cada cliente por cedula en una lista sin repetir
-        * -> Para cada uno de estos (su indice) almacenar y acumular en otra lista (por indice) un incremental por compra
-        * -> Encontrar una forma de ordenar la lista segun cantidad pero sin olvidar a que pasajero corresponde
-        * -> Posible solucion: Utilizar un diccionartio y ordenarlo
-        */
-        success = {'Codigo':true,'Contenido':{'CantidadCompras':amountCompras,'Pasajeros':mejoresPasajeros}} 
+        let items = Object.keys(comprasDict).map(function(key) { //Se crea un arreglo para almacenar el diccionario ordenado
+            return [key, comprasDict[key]];
+        });
+        console.log("before sort");
+        items.sort(function(first, second) { //Se ordena por el segundo valor, la funcion propia de items 
+            //se asegura que al reordenarlo los valores en el dicionario correspondan a sus respectivas keys
+            return second[1] - first[1];
+        });
+        items = items.slice(0,3); //Se toman solo los primeros 3 (los mejores)
+        let finalItems = []
+        for (k=0;k<items.length;k++){
+            let tempItem = items[k];
+            let tempName = await Pasajero.find({'cedula':tempItem[0]}).exec(); //Se extraen los documentos 
+            tempName = tempName[0]['nombreCompleto']; //Se toma el nombre
+            tempName = tempName.concat(" - "); //Separador
+            tempName = tempName.concat(tempItem[0]); //Se le concatena la cedula
+            finalItems.push([tempName,tempItem[1]]); //Se mete la tupla al resultado a enviar
+        }
+        
+        success = {'Codigo':true,'Contenido':{'CantidadCompras':amountCompras,'Pasajeros':finalItems}} 
     } catch (error) {
         success = {'Codigo':false,'Contenido':"error"}
     }
@@ -1223,6 +1237,58 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 /*---Funcionario APIs---------------------------------------------------------------------------------------*/
 
+server.get("/Test/test1", async (req, res) => {
+    console.log("Request received");
+    let success;
+    mongoose.connect(slavedb, {useNewUrlParser: true});
+    console.log("Connected to mongodb");
+    try {
+        let compras = await Compra.find().exec();
+        let arrayComprasinDate = [];
+        //let arrayComprasforClient = [];
+        for (i=0;i<compras.length;i++){
+            arrayComprasinDate.push(compras[i]);
+        }
+
+        let comprasDict = {};
+        for (j=0;j<arrayComprasinDate.length;j++){ //Para cada compra (indiferentemente del usuario)
+            tempCompra = arrayComprasinDate[j];
+            comprasDict[tempCompra['idPasajero']] = 0;
+        }
+        for (j=0;j<arrayComprasinDate.length;j++){ //Para cada compra (indiferentemente del usuario)
+            tempCompra = arrayComprasinDate[j];
+            comprasDict[tempCompra['idPasajero']] = parseInt(comprasDict[tempCompra['idPasajero']]) + parseInt(tempCompra['cantidadBoletos']);
+        }
+        console.log("before items array");
+        // Create items array
+        let items = Object.keys(comprasDict).map(function(key) {
+            return [key, comprasDict[key]];
+        });
+        console.log("before sort");
+        // Sort the array based on the second element
+        items.sort(function(first, second) {
+            return second[1] - first[1];
+        });
+        
+        // Create a new array with only the first 5 items
+        console.log(items.slice(0, 3));
+        items = items.slice(0,3);
+        let finalItems = []
+        for (k=0;k<items.length;k++){
+            let tempItem = items[k];
+            let tempName = await Pasajero.find({'cedula':tempItem[0]}).exec();
+            tempName = tempName[0]['nombreCompleto'];
+            tempName = tempName.concat(" - ");
+            tempName = tempName.concat(tempItem[0]);
+            finalItems.push([tempName,tempItem[1]]);
+        }
+        success = {'Codigo':true,'Contenido':finalItems} 
+    } catch (error) {
+        success = {'Codigo':false,'Contenido':"error"}
+    }
+    mongoose.disconnect();
+    res.send(success)
+});
 
 
 
