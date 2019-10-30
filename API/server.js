@@ -28,8 +28,8 @@ server.use(function (req, res, next) {
  var mongoose = require('mongoose');
  //mongoose.connect('mongodb://localhost/test', {useNewUrlParser: true}); //Change this line to set conection string
  
- var masterdb = 'mongodb://localhost/test' //Remember to change this for an extraction from a file, changed with docker.
- var slavedb = 'mongodb://localhost/test' //Remember to change this for an extraction from a file, changed with docker.
+ var masterdb = 'mongodb://localhost:30001/test' //Remember to change this for an extraction from a file, changed with docker.
+ var slavedb = 'mongodb://localhost:30002/test' //Remember to change this for an extraction from a file, changed with docker.
  
  
  //mongoide.connect('mongodb://localhost/mongoide', {useNewUrlParser: true}); //Change this line to set conection string
@@ -156,11 +156,12 @@ server.post("/CRUDS/CreateAeropuerto", async (req, res) => {
 server.post("/CRUDS/GetAeropuerto_codigo", async (req, res) => {
     console.log("Request received");
     let codigo = req.body['codigoAeropuerto']
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
+
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Aeropuerto.find({'codigoAeropuerto':codigo}).exec();
+        var response = await Aeropuerto.find({'codigoAeropuerto':codigo}).read('secondary').exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -172,11 +173,11 @@ server.post("/CRUDS/GetAeropuerto_codigo", async (req, res) => {
 server.get("/CRUDS/GetAeropuerto_todos", async (req, res) => {
     console.log("Request received");
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb aero_todos");
     let success;
     try {
-        var response = await Aeropuerto.find().exec();
+        var response = await Aeropuerto.find().read('secondary').exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -248,11 +249,11 @@ server.post("/CRUDS/GetFuncionario_cedula", async (req, res) => {
     console.log("Request received");
     let codigo = req.body['cedula']
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Funcionario.find({'cedula':codigo}).exec();
+        var response = await Funcionario.find({'cedula':codigo}).read('secondary').exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -264,11 +265,11 @@ server.post("/CRUDS/GetFuncionario_cedula", async (req, res) => {
 server.get("/CRUDS/GetFuncionario_todos", async (req, res) => {
     console.log("Request received");
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Funcionario.find().exec();
+        var response = await Funcionario.find().read('secondary').exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -338,11 +339,11 @@ server.post("/CRUDS/GetAerolinea_id", async (req, res) => {
     console.log("Request received");
     let codigo = req.body['id']
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Aerolinea.find({'id':codigo}).exec();
+        var response = await Aerolinea.find({'id':codigo}).read('secondary').exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -354,11 +355,11 @@ server.post("/CRUDS/GetAerolinea_id", async (req, res) => {
 server.get("/CRUDS/GetAerolinea_todos", async (req, res) => {
     console.log("Request received");
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Aerolinea.find().exec();
+        var response = await Aerolinea.find().read('secondary').exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -428,11 +429,11 @@ server.post("/CRUDS/GetVuelo_codigo", async (req, res) => {
     console.log("Request received");
     let codigo = req.body['codigoVuelo']
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Vuelo.find({'codigoVuelo':codigo}).exec();
+        var response = await Vuelo.find({'codigoVuelo':codigo}).read('secondary').exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -453,11 +454,11 @@ server.post("/CRUDS/GetVuelo_fechasxlugares", async (req, res) => {
     let origen = req.body['origen'];
     let destino = req.body['destino'];
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     let success;
     try {
-        var vueloArray = await Vuelo.find().exec();
+        var vueloArray = await Vuelo.find().read('secondary').exec();
         //console.log(vueloArray);
         let vuelosIn = [];
         vueloArray.forEach(function(vuelo){
@@ -504,11 +505,11 @@ server.post("/CRUDS/GetVuelo_fechasxlugares", async (req, res) => {
 server.get("/CRUDS/GetVuelo_todos", async (req, res) => {
     console.log("Request received");
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Vuelo.find().exec();
+        var response = await Vuelo.find().read('secondary').exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -580,11 +581,11 @@ server.post("/CRUDS/GetPasajero_cedula", async (req, res) => {
     console.log("Request received");
     let codigo = req.body['cedula']
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Pasajero.find({'cedula':codigo}).exec();
+        var response = await Pasajero.find({'cedula':codigo}).read('secondary').exec();
         let respo = response[0];
         let Decryptedbytes  = CryptoJS.AES.decrypt(respo['contrasena'].toString(), encryptionKey);
         let DecryptedPass = Decryptedbytes.toString(CryptoJS.enc.Utf8);
@@ -601,11 +602,11 @@ server.post("/CRUDS/GetPasajero_cedula", async (req, res) => {
 server.get("/CRUDS/GetPasajero_todos", async (req, res) => {
     console.log("Request received");
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Pasajero.find().exec();
+        var response = await Pasajero.find().read('secondary').exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -731,11 +732,11 @@ server.post("/CRUDS/GetCompra_codigo", async (req, res) => {
     console.log("Request received");
     let codigo = req.body['codigoCompra']
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Compra.find({'codigoCompra':codigo}).exec();
+        var response = await Compra.find({'codigoCompra':codigo}).read('secondary').exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -748,11 +749,11 @@ server.post("/CRUDS/GetCompra_pasajero", async (req, res) => {
     console.log("Request received");
     let codigo = req.body['idPasajero']
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Compra.find({'idPasajero':codigo}).exec();
+        var response = await Compra.find({'idPasajero':codigo}).read('secondary').exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -766,11 +767,11 @@ server.post("/CRUDS/GetCompra_pasajeroXvuelo", async (req, res) => {
     let codigo = req.body['codigoVuelo']
     let cedula = req.body['idPasajero']
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Compra.find({'codigoVuelo':codigo,'idPasajero':cedula}).exec();
+        var response = await Compra.find({'codigoVuelo':codigo,'idPasajero':cedula}).read('secondary').exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -783,11 +784,11 @@ server.post("/CRUDS/GetCompra_pasajeroXvuelo", async (req, res) => {
 server.get("/CRUDS/GetCompra_todos", async (req, res) => {
     console.log("Request received");
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     let success;
     try {
-        var response = await Compra.find().exec();
+        var response = await Compra.find().read('secondary').exec();
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -840,13 +841,13 @@ server.post("/LOGIN/Funcionario", async (req, res) => {
     console.log("Request received");
     let success;
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     try {
         let user = req.body['cedula']
         let pass = req.body['contrasena']
         //let newCompra = new Compra(req.body);
-        let userResp = await Funcionario.find({'cedula':user}).exec();
+        let userResp = await Funcionario.find({'cedula':user}).read('secondary').exec();
         if (userResp == ""){
             console.log("No resp");
             success = {'Codigo':false,'Contenido':'404u'}
@@ -870,13 +871,13 @@ server.post("/LOGIN/Pasajero", async (req, res) => {
     console.log("Request received");
     let success;
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     try {
         let user = req.body['cedula']
         let pass = req.body['contrasena']
         //let newCompra = new Compra(req.body);
-        let userResp = await Pasajero.find({'cedula':user}).exec();
+        let userResp = await Pasajero.find({'cedula':user}).read('secondary').exec();
         if (userResp == ""){
             console.log("No resp");
             success = {'Codigo':false,'Contenido':'404u'}
@@ -1026,10 +1027,10 @@ server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, 
     console.log("Request received");
     let success;
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     try {
-        let listAerolineas = await Aerolinea.find().exec();
+        let listAerolineas = await Aerolinea.find().read('secondary').exec();
         let listVuelos = []; //Defintiva (contiene temVuelos x cada aerolinea)
         let listAeros = [];
 
@@ -1039,7 +1040,7 @@ server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, 
             console.log(idAerolinea);
             let tempVuelos = [] //Contiene cada lista de resultados
             listAeros.push(aerolinea['nombre']);
-            let vuelos = await Vuelo.find({'codigoAerolinea':idAerolinea}).exec();
+            let vuelos = await Vuelo.find({'codigoAerolinea':idAerolinea}).read('secondary').exec();
             console.log("antes de vuelos.forEach");
             for (j=0;j< vuelos.length;j++){
                 let vuelo = vuelos[j];
@@ -1049,7 +1050,7 @@ server.get("/Administrador/ReporteVuelos_cantBoletos_montoVendido", async (req, 
                 console.log(precioVuelo);
                 tempResults.push(vuelo['nombre']);
                 console.log("antes de compra.find");
-                let compras = await Compra.find({'codigoVuelo':vuelo['codigoVuelo']}).exec();
+                let compras = await Compra.find({'codigoVuelo':vuelo['codigoVuelo']}).read('secondary').exec();
                 let tempMoney = 0;
                 let tempCount = 0;
                 for (k=0;k<compras.length;k++){
@@ -1088,10 +1089,10 @@ server.get("/Administrador/Pasajero_RangoBoletos", async (req, res) => {
     console.log("Request received");
     let success;
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     try {
-        let listPasajeros = await Pasajero.find().exec();
+        let listPasajeros = await Pasajero.find().read('secondary').exec();
         let pasajeros = [];
         let rango = [];
         for (i=0;i<listPasajeros.length;i++){
@@ -1102,7 +1103,7 @@ server.get("/Administrador/Pasajero_RangoBoletos", async (req, res) => {
             tempCedNombre = tempCedNombre.concat(pasajero['nombreCompleto']);
             pasajeros.push(tempCedNombre);
             console.log("Before listVentas");
-            let listVentas = await Compra.find({'idPasajero':pasajero['cedula']}).exec();
+            let listVentas = await Compra.find({'idPasajero':pasajero['cedula']}).read('secondary').exec();
             console.log("After listVentas");
             let tempRango = [];
             for (j=0;j<listVentas.length;j++){
@@ -1135,10 +1136,10 @@ server.get("/Administrador/DestinosMasVisitados", async (req, res) => {
     console.log("Request received");
     let success;
     //var db = mongoose.connection;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     try {
-        let allVuelos = await Vuelo.find().exec();
+        let allVuelos = await Vuelo.find().read('secondary').exec();
         let destinos = [];
         let totales = [];
         for (i=0;i<allVuelos.length;i++){
@@ -1152,7 +1153,7 @@ server.get("/Administrador/DestinosMasVisitados", async (req, res) => {
             }
             //Si el destino ya existe en la lista es innecesario añadir nada mas
             destinoIndex = destinos.indexOf(vuelo['destino']); //obtenemos el indice de nuevo (por seguridad)
-            let compras = await Compra.find({'codigoVuelo':vuelo['codigoVuelo']}); //obtenemos todas las compras para este vuelo
+            let compras = await Compra.find({'codigoVuelo':vuelo['codigoVuelo']}).read('secondary').exec(); //obtenemos todas las compras para este vuelo
             amountPasajeros = compras.length; //Como cada pasajero tiene una sola compra por vuelo esto sirve
             for (j = 0;j<amountPasajeros;j++){ //Para cada compra
                 amountTicketes += parseInt(compras[j]['cantidadBoletos']); //acumulamos la cantidad de boletos
@@ -1189,10 +1190,10 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
     let estado = req.body['estado'];
     let pasajero = req.body['idPasajero'];
     let success;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     try {
-        let compras = await Compra.find().exec();
+        let compras = await Compra.find().read('secondary').exec();
         let arrayComprasinDate = [];
         let arrayComprasforClient = [];
         for (i = 0;i<compras.length;i++){ //Para cada compra
@@ -1209,7 +1210,7 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
                         }
                     }
                 } else{ //Ahora, si el estado si importa
-                    let vuelo = await Vuelo.find({'codigoVuelo':compra['codigoVuelo']}).exec(); //Se extrae el vuelo
+                    let vuelo = await Vuelo.find({'codigoVuelo':compra['codigoVuelo']}).read('secondary').exec(); //Se extrae el vuelo
                     vuelo = vuelo[0]; //Se cada el vuelo (viene en una lista con un solo elemento)
                     if (vuelo['estado'] == estado){ //Si el estado del vuelo es el que buscamos
                         arrayComprasinDate.push(compra); //Lo mete a los que cumplen rango de fechas y estado
@@ -1248,7 +1249,7 @@ server.post("/Administrador/CantidadCompras", async (req, res) => {
         let finalItems = []
         for (k=0;k<items.length;k++){
             let tempItem = items[k];
-            let tempName = await Pasajero.find({'cedula':tempItem[0]}).exec(); //Se extraen los documentos 
+            let tempName = await Pasajero.find({'cedula':tempItem[0]}).read('secondary').exec(); //Se extraen los documentos 
             tempName = tempName[0]['nombreCompleto']; //Se toma el nombre
             tempName = tempName.concat(" - "); //Separador
             tempName = tempName.concat(tempItem[0]); //Se le concatena la cedula
@@ -1320,11 +1321,11 @@ server.post("/Funcionario/Vuelos", async (req, res) => {
     let pasajero = req.body['idPasajero'];
     let success;
     let finalVuelos = [];
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     try {
         if (pasajero == "Any"){
-            let vuelos = await Vuelo.find().exec();
+            let vuelos = await Vuelo.find().read('secondary').exec();
             for (i = 0;i <vuelos.length;i++){
                 let vuelo = vuelos[i];
                 fechaVuelo = new Date(vuelo['fechaVuelo']);
@@ -1340,10 +1341,10 @@ server.post("/Funcionario/Vuelos", async (req, res) => {
             }
             
         }else{
-            let compras = await Compra.find({'idPasajero':pasajero}).exec();
+            let compras = await Compra.find({'idPasajero':pasajero}).read('secondary').exec();
             for (i = 0;i< compras.length;i++){
                 let compra = compras[i];
-                let vuelo = await Vuelo.find({'codigoVuelo':compra['codigoVuelo']}).exec();
+                let vuelo = await Vuelo.find({'codigoVuelo':compra['codigoVuelo']}).read('secondary').exec();
                 vuelo = vuelo[0];
                 let fechaVuelo = new Date(vuelo['fechaVuelo']);
                 if (fechaVuelo >= minDate && fechaVuelo <= maxDate){
@@ -1372,10 +1373,10 @@ server.post("/Funcionario/Vuelos", async (req, res) => {
 server.get("/Test/test1", async (req, res) => {
     console.log("Request received");
     let success;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     try {
-        let compras = await Compra.find().exec();
+        let compras = await Compra.find().read('secondary').exec();
         let arrayComprasinDate = [];
         //let arrayComprasforClient = [];
         for (i=0;i<compras.length;i++){
@@ -1408,7 +1409,7 @@ server.get("/Test/test1", async (req, res) => {
         let finalItems = []
         for (k=0;k<items.length;k++){
             let tempItem = items[k];
-            let tempName = await Pasajero.find({'cedula':tempItem[0]}).exec();
+            let tempName = await Pasajero.find({'cedula':tempItem[0]}).read('secondary').exec();
             tempName = tempName[0]['nombreCompleto'];
             tempName = tempName.concat(" - ");
             tempName = tempName.concat(tempItem[0]);
@@ -1426,7 +1427,7 @@ server.get("/Test/test1", async (req, res) => {
 server.get("/Test/test2", async (req, res) => {
     console.log("Request received");
     let success;
-    mongoose.connect(slavedb, {useNewUrlParser: true});
+    mongoose.connect(slavedb, {useNewUrlParser: true}).catch(error =>  mongoose.connect(masterdb, {useNewUrlParser: true}));
     console.log("Connected to mongodb");
     try {
         let keys = ["agua","perro","gato","iguana","Ramiro"];
@@ -1463,6 +1464,7 @@ server.get("/Test/test2", async (req, res) => {
     mongoose.disconnect();
     res.send(success)
 });
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
