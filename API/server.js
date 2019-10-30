@@ -585,6 +585,11 @@ server.post("/CRUDS/GetPasajero_cedula", async (req, res) => {
     let success;
     try {
         var response = await Pasajero.find({'cedula':codigo}).exec();
+        let respo = response[0];
+        let Decryptedbytes  = CryptoJS.AES.decrypt(respo['contrasena'].toString(), encryptionKey);
+        let DecryptedPass = Decryptedbytes.toString(CryptoJS.enc.Utf8);
+        respo['contrasena'] = DecryptedPass;
+        response[0] = respo;
         success = {'Codigo':true,'Contenido':response}
     } catch (error) {
         success = {'Codigo':false,'Contenido':error}
@@ -1457,20 +1462,6 @@ server.get("/Test/test2", async (req, res) => {
     mongoose.disconnect();
     res.send(success)
 });
-/* "Totales": [
-            [
-                0,
-                0
-            ],
-            [
-                5,
-                1
-            ],
-            [
-                4,
-                1
-            ]
-        ]*/
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
