@@ -625,6 +625,7 @@ server.post("/CRUDS/UpdatePasajero", async (req, res) => {
         var aero = await Pasajero.find({'cedula':codigo}).exec();
         console.log(aero)
         aero = aero[0].set(req.body);
+        aero['contrasena'] = CryptoJS.AES.encrypt(aero['contrasena'].toString(), encryptionKey);
         console.log(aero)
         var response = await aero.save();
         success = {'Codigo':true,'Contenido':response}
